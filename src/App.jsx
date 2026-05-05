@@ -13,6 +13,7 @@ import NeedBoard from "./pages/Needs/NeedBoard";
 import JoinRequests from "./pages/Requests/JoinRequests";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import NotificationListener from "./components/layout/NotificationListener";
+import GlobalResponsiveStyles from "./styles/GlobalResponsiveStyles";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuthStore();
@@ -63,6 +64,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <GlobalResponsiveStyles />
       <Toaster position="top-center" toastOptions={{ style: { background: "#18181b", color: "#fff", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10 } }} />
       <NotificationListener />
       <Routes>

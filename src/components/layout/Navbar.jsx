@@ -13,6 +13,7 @@ export default function Navbar() {
   const { user, profile, setUser, setProfile } = useAuthStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState({ projects: [], people: [], needs: [] });
   const [searching, setSearching] = useState(false);
@@ -20,6 +21,7 @@ export default function Navbar() {
   const [unreadMessages, setUnreadMessages] = useState({ uid: "", hasUnread: false });
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   useEffect(() => {
     if (user?.uid) {
@@ -61,6 +63,12 @@ export default function Navbar() {
         setSearchQuery("");
         setSearchResults({ projects: [], people: [], needs: [] });
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+        const hamburgerBtn = document.querySelector('.mobile-menu-btn');
+        if (hamburgerBtn && !hamburgerBtn.contains(e.target)) {
+          setMobileMenuOpen(false);
+        }
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -82,6 +90,7 @@ export default function Navbar() {
     setSearchOpen(false);
     setSearchQuery("");
     setSearchResults({ projects: [], people: [], needs: [] });
+    setMobileMenuOpen(false);
     if (type === "project") navigate(`/projects/${id}`);
     else if (type === "person") navigate(`/profile/${id}`);
     else if (type === "need") navigate(`/needs?id=${id}`);
@@ -119,7 +128,6 @@ export default function Navbar() {
         .nav-link-wrapper { position: relative; display: inline-flex; }
         .nav-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; background: #ff5555; color: #fff; font-size: 10px; font-weight: 600; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
         .nav-dot { position: absolute; top: 3px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #ff5555; box-shadow: 0 0 0 2px #09090b; }
-        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
         .nav-avatar-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(99,255,180,0.3); background: rgba(99,255,180,0.1); cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #63ffb4; font-family: 'Syne', sans-serif; transition: border-color 0.15s; flex-shrink: 0; }
         .nav-avatar-btn:hover { border-color: rgba(99,255,180,0.7); }
         .nav-dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 220px; background: #18181b; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
@@ -139,6 +147,91 @@ export default function Navbar() {
         .search-result:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .search-result svg { flex-shrink: 0; color: rgba(255,255,255,0.35); }
         .search-result span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: rgba(255,255,255,0.7); transition: color 0.15s; }
+        .mobile-menu-btn:hover { color: #fff; }
+        .mobile-menu { display: none; }
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+
+        @media (max-width: 768px) {
+          .navbar { padding: 0 16px; gap: 12px; }
+          .nav-links { display: none; }
+          .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+          .nav-actions { margin-left: auto; }
+          
+          .mobile-menu {
+            display: block;
+            position: fixed;
+            top: 58px;
+            left: 0;
+            right: 0;
+            background: rgba(9,9,11,0.98);
+            backdrop-filter: blur(12px);
+            border-bottom: 0.5px solid rgba(255,255,255,0.07);
+            padding: 12px 16px 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 99;
+          }
+          
+          .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+          
+          .mobile-nav-link {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+          
+          .mobile-nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
+          .mobile-nav-link.active { color: #fff; background: rgba(255,255,255,0.07); }
+          
+          .mobile-nav-link-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .search-dropdown {
+            position: fixed;
+            top: 58px;
+            left: 16px;
+            right: 16px;
+            width: auto;
+          }
+          
+          .nav-dropdown {
+            position: fixed;
+            top: 58px;
+            right: 16px;
+            width: calc(100vw - 32px);
+            max-width: 280px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .navbar { padding: 0 12px; }
+          .nav-logo-text { font-size: 15px; }
+          .nav-avatar-btn { width: 32px; height: 32px; }
+          
+          .search-dropdown {
+            left: 12px;
+            right: 12px;
+          }
+          
+          .nav-dropdown {
+            right: 12px;
+            width: calc(100vw - 24px);
+          }
+        }
       `}</style>
 
       <nav className="navbar">
@@ -146,6 +239,23 @@ export default function Navbar() {
           <div className="nav-logo-dot" />
           <span className="nav-logo-text">HackHive</span>
         </Link>
+
+        <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {mobileMenuOpen ? (
+              <>
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </>
+            ) : (
+              <>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </>
+            )}
+          </svg>
+        </button>
 
         <div className="nav-links">
           {navLinks.map((l) => (
@@ -157,96 +267,119 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div style={{ position: "relative" }} ref={searchRef}>
-          <button className="search-btn" onClick={() => setSearchOpen(!searchOpen)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-          </button>
+        <div className="nav-actions">
+          <div style={{ position: "relative" }} ref={searchRef}>
+            <button className="search-btn" onClick={() => setSearchOpen(!searchOpen)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+            </button>
 
-          {searchOpen && (
-            <div className="search-dropdown">
-              <div style={{ padding: 12, borderBottom: "0.5px solid rgba(255,255,255,0.07)" }}>
-                <input
-                  type="text"
-                  placeholder="Search projects, people, opportunities..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoFocus
-                  style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 12px", color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
-                />
+            {searchOpen && (
+              <div className="search-dropdown">
+                <div style={{ padding: 12, borderBottom: "0.5px solid rgba(255,255,255,0.07)" }}>
+                  <input
+                    type="text"
+                    placeholder="Search projects, people, opportunities..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                    style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 12px", color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+                  />
+                </div>
+                <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                  {searching && <div style={{ padding: 20, textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Searching...</div>}
+                  {!searching && searchQuery.length >= 2 && searchResults.projects.length === 0 && searchResults.people.length === 0 && searchResults.needs.length === 0 && (
+                    <div style={{ padding: 20, textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>No results found</div>
+                  )}
+                  {!searching && searchResults.projects.length > 0 && (
+                    <div>
+                      <div className="search-section-title">Projects</div>
+                      {searchResults.projects.slice(0, 4).map((p) => (
+                        <div key={p.id} className="search-result" onClick={() => handleSearchResultClick("project", p.id)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                          <span>{p.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!searching && searchResults.people.length > 0 && (
+                    <div>
+                      <div className="search-section-title">People</div>
+                      {searchResults.people.slice(0, 4).map((u) => (
+                        <div key={u.uid} className="search-result" onClick={() => handleSearchResultClick("person", u.uid)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                          <span>{u.displayName}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!searching && searchResults.needs.length > 0 && (
+                    <div>
+                      <div className="search-section-title">Opportunities</div>
+                      {searchResults.needs.slice(0, 4).map((n) => (
+                        <div key={n.id} className="search-result" onClick={() => handleSearchResultClick("need", n.id)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                          <span>{n.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div style={{ maxHeight: 320, overflowY: "auto" }}>
-                {searching && <div style={{ padding: 20, textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Searching...</div>}
-                {!searching && searchQuery.length >= 2 && searchResults.projects.length === 0 && searchResults.people.length === 0 && searchResults.needs.length === 0 && (
-                  <div style={{ padding: 20, textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>No results found</div>
-                )}
-                {!searching && searchResults.projects.length > 0 && (
-                  <div>
-                    <div className="search-section-title">Projects</div>
-                    {searchResults.projects.slice(0, 4).map((p) => (
-                      <div key={p.id} className="search-result" onClick={() => handleSearchResultClick("project", p.id)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                        <span>{p.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {!searching && searchResults.people.length > 0 && (
-                  <div>
-                    <div className="search-section-title">People</div>
-                    {searchResults.people.slice(0, 4).map((u) => (
-                      <div key={u.uid} className="search-result" onClick={() => handleSearchResultClick("person", u.uid)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                        <span>{u.displayName}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {!searching && searchResults.needs.length > 0 && (
-                  <div>
-                    <div className="search-section-title">Opportunities</div>
-                    {searchResults.needs.slice(0, 4).map((n) => (
-                      <div key={n.id} className="search-result" onClick={() => handleSearchResultClick("need", n.id)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                        <span>{n.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div style={{ position: "relative" }} ref={dropdownRef}>
-          <button className="nav-avatar-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
-            {profile?.photoURL ? <img src={profile.photoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
-          </button>
+          <div style={{ position: "relative" }} ref={dropdownRef}>
+            <button className="nav-avatar-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              {profile?.photoURL ? <img src={profile.photoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
+            </button>
 
-          {dropdownOpen && (
-            <div className="nav-dropdown">
-              <div className="dropdown-header">
-                <p className="dropdown-name">{profile?.displayName || "Builder"}</p>
-                <p className="dropdown-email">{user?.email}</p>
+            {dropdownOpen && (
+              <div className="nav-dropdown">
+                <div className="dropdown-header">
+                  <p className="dropdown-name">{profile?.displayName || "Builder"}</p>
+                  <p className="dropdown-email">{user?.email}</p>
+                </div>
+                <Link to="/profile/me" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                  My profile
+                </Link>
+                <Link to="/projects/new" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                  New project
+                </Link>
+                <div className="dropdown-divider" />
+                <button className="dropdown-item danger" onClick={handleSignOut}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Sign out
+                </button>
               </div>
-              <Link to="/profile/me" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                My profile
-              </Link>
-              <Link to="/projects/new" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-                New project
-              </Link>
-              <div className="dropdown-divider" />
-              <button className="dropdown-item danger" onClick={handleSignOut}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Sign out
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </nav>
+
+      {mobileMenuOpen && (
+        <div className="mobile-menu" ref={mobileMenuRef}>
+          <div className="mobile-nav-links">
+            {navLinks.map((l) => (
+              <Link
+                key={l.path}
+                to={l.path}
+                className={`mobile-nav-link ${location.pathname === l.path ? "active" : ""}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="mobile-nav-link-content">
+                  <span>{l.label}</span>
+                  {l.dot && <span className="nav-dot" style={{ position: 'static', boxShadow: 'none' }} />}
+                </div>
+                {l.badge > 0 && <span className="nav-badge" style={{ position: 'static' }}>{l.badge}</span>}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }

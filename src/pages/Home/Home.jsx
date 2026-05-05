@@ -12,17 +12,18 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
         .home-shell {
+          width: 100%;
           max-width: 960px;
           margin: 0 auto;
-          padding: 32px 24px 64px;
+          padding: 24px 16px 64px;
         }
         .home-title {
           font-family: 'Syne', sans-serif;
-          font-size: 24px;
+          font-size: clamp(20px, 5vw, 24px);
           font-weight: 800;
           color: #fff;
           letter-spacing: -0.5px;
-          margin: 0 0 24px;
+          margin: 0 0 20px;
         }
         .tab-row {
           display: flex;
@@ -56,7 +57,7 @@ export default function Home() {
       <Navbar />
 
       <main className="home-shell">
-        toast.success("Welcome to ProjectCollab! Explore projects and connect with collaborators.");
+        {/* toast.success("Welcome to ProjectCollab! Explore projects and connect with collaborators."); */}
         <h1 className="home-title">Discover</h1>
 
         <div className="tab-row">

@@ -330,7 +330,7 @@ export default function Profile() {
 
       <Navbar />
 
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "48px 24px 80px" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 16px 80px" }}>
 
         {/* ── HEADER CARD ── */}
         <div className="fade-in" style={{
