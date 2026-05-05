@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection
+    match /users/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Projects collection
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null 
+        && (request.auth.uid == resource.data.ownerId 
+         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(["interests", "interestCount", "viewCount"]));
+      allow delete: if request.auth != null;
+    }
+    
+    // Needs collection
+    match /needs/{needId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == resource.data.authorId;
+      allow delete: if request.auth != null;
+    }
+    
+    // Join Requests collection
+    match /joinRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Analytics collection
+    match /analytics/{date} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Chats collection
+    match /chats/index {
+      allow read, write: if request.auth != null;
+    }
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+    
+  }
+}
