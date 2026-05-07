@@ -61,7 +61,7 @@ export const shellStyles = `
   }
 `;
 
-export const getResponsiveStyles = (mobile, tablet, desktop) => {
+export const getResponsiveStyles = () => {
   return `
     .page-container {
       width: 100%;

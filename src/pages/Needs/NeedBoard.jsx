@@ -36,15 +36,16 @@ export default function NeedBoard() {
   const [deletingNeedId, setDeletingNeedId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    loadNeeds();
-  }, []);
-
   const loadNeeds = async () => {
     const data = await getAllNeeds();
     setNeeds(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadNeeds();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -7,20 +7,47 @@ import {
   serverTimestamp,
   collection,
   increment,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { createNotification } from "./notificationService";
 
-export const createUserDoc = async (firebaseUser) => {
+const getFirebasePhotoURL = (firebaseUser) => {
+  if (firebaseUser.photoURL) return firebaseUser.photoURL;
+
+  return firebaseUser.providerData?.find((provider) => provider.photoURL)?.photoURL || "";
+};
+
+const getGitHubPhotoURL = async (githubAccessToken) => {
+  if (!githubAccessToken) return "";
+
+  try {
+    const response = await fetch("https://api.github.com/user", {
+      headers: { Authorization: `Bearer ${githubAccessToken}` },
+    });
+
+    if (!response.ok) return "";
+
+    const githubUser = await response.json();
+    return githubUser.avatar_url || "";
+  } catch (e) {
+    console.error("Failed to fetch GitHub avatar:", e);
+    return "";
+  }
+};
+
+export const createUserDoc = async (firebaseUser, githubAccessToken = null) => {
   const ref = doc(db, "users", firebaseUser.uid);
   const snap = await getDoc(ref);
+  const newPhotoURL = getFirebasePhotoURL(firebaseUser) || await getGitHubPhotoURL(githubAccessToken);
 
   if (!snap.exists()) {
     await setDoc(ref, {
       uid: firebaseUser.uid,
       displayName: firebaseUser.displayName || "",
       email: firebaseUser.email || "",
-      photoURL: firebaseUser.photoURL || "",
+      photoURL: newPhotoURL,
       college: "",
       bio: "",
       skills: [],
@@ -30,6 +57,11 @@ export const createUserDoc = async (firebaseUser) => {
       onboarded: false,
       createdAt: serverTimestamp(),
     });
+  } else {
+    const existingData = snap.data();
+    if (newPhotoURL && existingData.photoURL !== newPhotoURL) {
+      await updateDoc(ref, { photoURL: newPhotoURL });
+    }
   }
 
   return (await getDoc(ref)).data();
@@ -71,4 +103,28 @@ export const updateUserDoc = async (uid, data) => {
 export const getAllUsers = async () => {
   const snap = await getDocs(collection(db, "users"));
   return snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+};
+
+export const checkUserExists = async (email, githubUsername = null) => {
+  const usersRef = collection(db, "users");
+  const normalizedEmail = email.toLowerCase();
+
+  const emailQuery = query(usersRef, where("email", "==", normalizedEmail));
+  const emailSnap = await getDocs(emailQuery);
+
+  if (!emailSnap.empty) {
+    return { exists: true, reason: "email" };
+  }
+
+  if (githubUsername) {
+    const normalizedGithub = githubUsername.toLowerCase();
+    const githubQuery = query(usersRef, where("githubUsername", "==", normalizedGithub));
+    const githubSnap = await getDocs(githubQuery);
+
+    if (!githubSnap.empty) {
+      return { exists: true, reason: "github" };
+    }
+  }
+
+  return { exists: false, reason: null };
 };

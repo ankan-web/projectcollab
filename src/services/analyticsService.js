@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, updateDoc, increment, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, increment, collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from "./firebase";
 
 const getTodayKey = () => {

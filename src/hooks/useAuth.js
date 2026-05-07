@@ -11,11 +11,13 @@ export const useAuth = () => {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const profile = await createUserDoc(firebaseUser);
+        const githubToken = sessionStorage.getItem("github_access_token");
+        const profile = await createUserDoc(firebaseUser, githubToken);
         setUser(firebaseUser);
         setProfile(profile);
         trackDailyActiveUser(firebaseUser.uid);
       } else {
+        sessionStorage.removeItem("github_access_token");
         setUser(null);
         setProfile(null);
       }

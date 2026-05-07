@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import SkillInput from "../../components/ui/SkillInput";
 import { createProject } from "../../services/projectService";

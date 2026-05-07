@@ -19,14 +19,15 @@ export default function ChatPage() {
   const chatWithUid = searchParams.get("chatWith");
   const otherUid = searchParams.get("with");
   const activeOtherUid = chatWithUid || otherUid;
+  const currentUserUid = user?.uid;
 
   const activeChat = useMemo(() => {
-    if (!user?.uid || !activeOtherUid) return null;
+    if (!currentUserUid || !activeOtherUid) return null;
     return {
-      id: getChatId(user.uid, activeOtherUid),
+      id: getChatId(currentUserUid, activeOtherUid),
       otherUid: activeOtherUid,
     };
-  }, [user?.uid, activeOtherUid]);
+  }, [currentUserUid, activeOtherUid]);
 
   const activeChatUser = chats.find((c) => c.otherUid === activeChat?.otherUid);
 

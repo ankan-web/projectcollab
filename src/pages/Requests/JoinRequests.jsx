@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import { useAuthStore } from "../../store/authStore";
 import { getUserJoinRequests, updateRequestStatus, deleteJoinRequest, cleanupOldRequests } from "../../services/joinService";
 import { getProject } from "../../services/projectService";
 
 export default function JoinRequests() {
-  const { user, profile } = useAuthStore();
-  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,31 +13,30 @@ export default function JoinRequests() {
 
   useEffect(() => {
     cleanupOldRequests(1);
-    loadRequests();
+    (async () => {
+      try {
+        const allRequests = await getUserJoinRequests(user.uid);
+        
+        const incoming = allRequests.filter((r) => r.projectOwnerId === user.uid);
+        const outgoing = allRequests.filter((r) => r.requesterId === user.uid);
+        
+        const enrichedIncoming = await Promise.all(
+          incoming.map(async (req) => {
+            const project = await getProject(req.projectId);
+            return { ...req, project };
+          })
+        );
+        
+        setIncomingRequests(enrichedIncoming);
+        setMyRequests(outgoing);
+      } catch (err) {
+        console.error("Error loading requests:", err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const loadRequests = async () => {
-    try {
-      const allRequests = await getUserJoinRequests(user.uid);
-      
-      const incoming = allRequests.filter((r) => r.projectOwnerId === user.uid);
-      const outgoing = allRequests.filter((r) => r.requesterId === user.uid);
-      
-      const enrichedIncoming = await Promise.all(
-        incoming.map(async (req) => {
-          const project = await getProject(req.projectId);
-          return { ...req, project };
-        })
-      );
-      
-      setIncomingRequests(enrichedIncoming);
-      setMyRequests(outgoing);
-    } catch (err) {
-      console.error("Error loading requests:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAccept = async (requestId) => {
     try {

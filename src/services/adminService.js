@@ -1,6 +1,3 @@
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "./firebase";
-
 const ADMIN_EMAIL = "***REMOVED***";
 const ADMIN_PASSWORD = "***REMOVED***";
 

@@ -2,7 +2,6 @@ import { useState } from "react";
 import Navbar from "../../components/layout/Navbar";
 import DiscoverFeed from "./DiscoverFeed";
 import PeopleSearch from "./PeopleSearch";
-import toast from "react-hot-toast";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("projects");

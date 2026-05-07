@@ -11,7 +11,7 @@ export default function PeopleSearch() {
 
   useEffect(() => {
     getAllUsers().then((data) => {
-      setUsers(data.filter((u) => u.uid !== user?.uid));
+      setUsers(data.filter((u) => u.uid !== user?.uid && !u.isAdmin));
       setLoading(false);
     });
   }, [user?.uid]);

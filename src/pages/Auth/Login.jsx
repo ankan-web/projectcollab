@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 // ============================================================================
 // ORIGINAL IMPORTS: Uncomment these when pasting into your project
@@ -7,11 +7,13 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  GithubAuthProvider,
 } from "firebase/auth";
 import { auth, githubProvider, googleProvider, db } from "../../services/firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import { verifyAdminCredentials } from "../../services/adminService";
+import { createUserDoc, checkUserExists } from "../../services/userService";
+import { useAuthStore } from "../../store/authStore";
 
 // ============================================================================
 // MOCK BLOCK: For preview environment only. Remove in production!
@@ -35,12 +37,25 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { setUser, setProfile } = useAuthStore();
+
+  const syncSignedInUser = async (firebaseUser, githubAccessToken = null) => {
+    const profile = await createUserDoc(firebaseUser, githubAccessToken);
+    setUser(firebaseUser);
+    setProfile(profile);
+  };
 
   const handleGitHub = async () => {
     setError("");
     setLoading(true);
     try {
-      await signInWithPopup(auth, githubProvider);
+      const result = await signInWithPopup(auth, githubProvider);
+      const githubCredential = GithubAuthProvider.credentialFromResult(result);
+      const githubAccessToken = githubCredential?.accessToken || null;
+      if (githubAccessToken) {
+        sessionStorage.setItem("github_access_token", githubAccessToken);
+      }
+      await syncSignedInUser(result.user, githubAccessToken);
       navigate("/home");
     } catch (e) {
       setError(e.message || "Failed to sign in with GitHub.");
@@ -53,7 +68,9 @@ export default function App() {
     setError("");
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      sessionStorage.removeItem("github_access_token");
+      const result = await signInWithPopup(auth, googleProvider);
+      await syncSignedInUser(result.user);
       navigate("/home");
     } catch (e) {
       setError(e.message || "Failed to sign in with Google.");
@@ -68,6 +85,17 @@ export default function App() {
     setLoading(true);
 
     try {
+      sessionStorage.removeItem("github_access_token");
+
+      if (tab === "register") {
+        const existingUser = await checkUserExists(email);
+        if (existingUser.exists) {
+          setError("An account with this email already exists. Please sign in.");
+          setLoading(false);
+          return;
+        }
+      }
+
       const userCredential =
         tab === "signin"
           ? await signInWithEmailAndPassword(auth, email, password)

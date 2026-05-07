@@ -19,28 +19,6 @@ export default function AdminDashboard() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [stats, setStats] = useState({ users: 0, projects: 0, needs: 0, daily: [] });
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-      
-      const userDoc = await getDoc(docRef(db, "users", user.uid));
-      const userData = userDoc.data();
-      
-      if (!userData?.isAdmin) {
-        navigate("/home");
-        return;
-      }
-      
-      loadData();
-      loadStats();
-    });
-
-    return () => unsubscribe();
-  }, [activeTab]);
-
   const loadStats = async () => {
     try {
       const [userCount, projectCount, needCount, dailyData] = await Promise.all([
@@ -79,6 +57,29 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+      
+      const userDoc = await getDoc(docRef(db, "users", user.uid));
+      const userData = userDoc.data();
+      
+      if (!userData?.isAdmin) {
+        navigate("/home");
+        return;
+      }
+      
+      loadData();
+      loadStats();
+    });
+
+    return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleDeleteUser = async (userId, userName) => {
     setDeleteTarget({ type: "user", id: userId, name: userName });

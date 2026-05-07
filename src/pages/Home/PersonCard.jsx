@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import { getOrCreateChat } from "../../services/chatService";
 
-export default function PersonCard({ user, onConnect }) {
+export default function PersonCard({ user }) {
   const navigate = useNavigate();
   const { user: currentUser, profile: currentProfile } = useAuthStore();
 

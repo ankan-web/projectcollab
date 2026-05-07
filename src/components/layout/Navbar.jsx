@@ -50,6 +50,7 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     await signOut(auth);
+    sessionStorage.removeItem("github_access_token");
     setUser(null);
     setProfile(null);
     navigate("/login");
@@ -76,14 +77,18 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2) {
-      setSearchResults({ projects: [], people: [], needs: [] });
       return;
     }
-    setSearching(true);
+    let cancelled = false;
     globalSearch(searchQuery).then((results) => {
-      setSearchResults(results);
-      setSearching(false);
+      if (!cancelled) {
+        setSearchResults(results);
+        setSearching(false);
+      }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [searchQuery]);
 
   const handleSearchResultClick = (type, id) => {
@@ -282,7 +287,16 @@ export default function Navbar() {
                     type="text"
                     placeholder="Search projects, people, opportunities..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        setSearchQuery(val);
+                        if (!val || val.length < 2) {
+                          setSearchResults({ projects: [], people: [], needs: [] });
+                          setSearching(false);
+                        } else {
+                          setSearching(true);
+                        }
+                      }}
                     autoFocus
                     style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 12px", color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
                   />

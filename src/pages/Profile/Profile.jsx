@@ -92,6 +92,7 @@ export default function Profile() {
         setLoading(false);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetUid, isMe, myProfile]);
 
   useEffect(() => {
@@ -168,7 +169,7 @@ export default function Profile() {
       setLocalProfile(newProfile);
       setProfile({ ...myProfile, ...updated });
       setEditing(false);
-    } catch (err) {
+    } catch {
       toast.error("Failed to save profile. Please try again.");
       setSaveError("Failed to save. Please try again.");
     } finally {
@@ -367,8 +368,8 @@ export default function Profile() {
                 try {
                   await getOrCreateChat(user.uid, targetUid, myProfile);
                   navigate(`/chat?chatWith=${targetUid}`);
-                } catch (err) {
-                  console.error("Error starting chat:", err);
+                } catch (e) {
+                  console.error("Error starting chat:", e);
                 }
               }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
