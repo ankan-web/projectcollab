@@ -4,6 +4,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { getUserByUid, updateUserDoc } from "../../services/userService";
 import { getUserProjects } from "../../services/projectService";
 import { getUserNeeds, deleteNeed } from "../../services/needService";
+import { getGroup } from "../../services/groupService";
 import { useAuthStore } from "../../store/authStore";
 import { getOrCreateChat } from "../../services/chatService";
 import Navbar from "../../components/layout/Navbar";
@@ -77,6 +78,8 @@ export default function Profile() {
   const [projectsError, setProjectsError] = useState("");
   const [needs, setNeeds] = useState([]);
   const [needsLoading, setNeedsLoading] = useState(true);
+  const [group, setGroup] = useState(null);
+  const [groupLoading, setGroupLoading] = useState(false);
 
   useEffect(() => {
     if (!targetUid) return;
@@ -119,6 +122,32 @@ export default function Profile() {
       active = false;
     };
   }, [targetUid]);
+
+  useEffect(() => {
+    if (!profile?.groupId) {
+      setGroup(null);
+      setGroupLoading(false);
+      return;
+    }
+
+    let active = true;
+    setGroupLoading(true);
+    getGroup(profile.groupId)
+      .then((data) => {
+        if (active) setGroup(data);
+      })
+      .catch((e) => {
+        console.error("Error loading group:", e);
+        if (active) setGroup(null);
+      })
+      .finally(() => {
+        if (active) setGroupLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [profile?.groupId]);
 
   useEffect(() => {
     if (!targetUid) return;
@@ -326,15 +355,108 @@ export default function Profile() {
           color: #63ffb4;
         }
         .fade-in { animation: fadeIn 0.3s ease; }
+        .profile-group-card {
+          background: rgba(255,255,255,0.03);
+          border: 0.5px solid rgba(255,255,255,0.08);
+          border-radius: 14px;
+          padding: 18px;
+        }
+        .profile-group-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 14px;
+        }
+        .profile-group-name {
+          font-family: 'Syne', sans-serif;
+          font-size: 17px;
+          font-weight: 800;
+          color: #fff;
+          margin: 0 0 6px;
+        }
+        .profile-group-desc {
+          font-size: 13px;
+          color: rgba(255,255,255,0.52);
+          line-height: 1.55;
+          margin: 0;
+        }
+        .profile-group-count {
+          flex-shrink: 0;
+          border-radius: 999px;
+          padding: 5px 10px;
+          background: rgba(99,255,180,0.1);
+          border: 0.5px solid rgba(99,255,180,0.25);
+          color: #63ffb4;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .profile-group-members {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 14px;
+        }
+        .profile-group-member {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          max-width: 190px;
+          border-radius: 999px;
+          padding: 5px 9px 5px 5px;
+          background: rgba(255,255,255,0.05);
+          border: 0.5px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.68);
+          font-size: 12px;
+        }
+        .profile-group-avatar {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          overflow: hidden;
+          background: rgba(99,255,180,0.1);
+          color: #63ffb4;
+          font-family: 'Syne', sans-serif;
+          font-size: 9px;
+          font-weight: 800;
+        }
+        .profile-group-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-group-member span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .profile-admin-tag {
+          color: #09090b;
+          background: #63ffb4;
+          border-radius: 999px;
+          padding: 2px 6px;
+          font-size: 9px;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        @media (max-width: 640px) {
+          .profile-shell { padding: 24px 14px 56px !important; }
+          .profile-main-card, .profile-section-card { padding: 22px 18px !important; border-radius: 14px !important; }
+          .profile-actions { position: static !important; justify-content: flex-start; margin-bottom: 20px; flex-wrap: wrap; }
+          .profile-identity { flex-direction: column; gap: 14px !important; }
+          .profile-name-block { padding-right: 0 !important; width: 100%; }
+          .edit-btn, .save-btn, .cancel-btn, .connect-btn { width: 100%; justify-content: center; }
+          .profile-action-editing { width: 100%; flex-direction: column-reverse; }
+          .profile-group-top { flex-direction: column; }
+          .profile-group-count { align-self: flex-start; }
+          .profile-group-member { max-width: 100%; }
+          .link-pill { max-width: 100%; overflow-wrap: anywhere; }
+        }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
       `}</style>
 
       <Navbar />
 
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 16px 80px" }}>
+      <div className="profile-shell" style={{ maxWidth: 760, margin: "0 auto", padding: "32px 16px 80px" }}>
 
         {/* ── HEADER CARD ── */}
-        <div className="fade-in" style={{
+        <div className="fade-in profile-main-card" style={{
           background: "#111113",
           border: "0.5px solid rgba(255,255,255,0.08)",
           borderRadius: 16,
@@ -344,7 +466,7 @@ export default function Profile() {
         }}>
 
           {/* Edit / action buttons */}
-          <div style={{ position: "absolute", top: 24, right: 24, display: "flex", gap: 8 }}>
+          <div className={`profile-actions ${editing ? "profile-action-editing" : ""}`} style={{ position: "absolute", top: 24, right: 24, display: "flex", gap: 8 }}>
             {isMe ? (
               editing ? (
                 <>
@@ -384,7 +506,7 @@ export default function Profile() {
           </div>
 
           {/* Avatar + name */}
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 24 }}>
+          <div className="profile-identity" style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 24 }}>
             <div style={{
               width: 72, height: 72, borderRadius: "50%", flexShrink: 0,
               background: "rgba(99,255,180,0.1)",
@@ -399,7 +521,7 @@ export default function Profile() {
               }
             </div>
 
-            <div style={{ flex: 1, paddingRight: 120 }}>
+            <div className="profile-name-block" style={{ flex: 1, paddingRight: 120 }}>
               {editing ? (
                 <input
                   className="profile-input"
@@ -557,8 +679,73 @@ export default function Profile() {
           )}
         </div>
 
+        {/* ── GROUP SECTION ── */}
+        {(isMe || group || groupLoading) && (
+          <div className="fade-in profile-section-card" style={{
+            background: "#111113",
+            border: "0.5px solid rgba(255,255,255,0.08)",
+            borderRadius: 16,
+            padding: "28px 32px",
+            marginBottom: 16,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+              <div className="section-title" style={{ margin: 0 }}>{isMe ? "My Group" : "Group"}</div>
+              {isMe && (
+                <Link to="/groups" className="link-pill">
+                  Manage group
+                </Link>
+              )}
+            </div>
+
+            {groupLoading ? (
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", margin: 0 }}>Loading group...</p>
+            ) : group ? (
+              <div className="profile-group-card">
+                <div className="profile-group-top">
+                  <div>
+                    <h2 className="profile-group-name">{group.name}</h2>
+                    <p className="profile-group-desc">{group.description}</p>
+                  </div>
+                  <span className="profile-group-count">
+                    {group.members?.length || 0}/{group.maxMembers || 6}
+                  </span>
+                </div>
+
+                <div className="profile-group-members">
+                  {group.members?.map((member) => (
+                    <div key={member.uid} className="profile-group-member">
+                      <div className="profile-group-avatar">
+                        {member.photoURL ? (
+                          <img src={member.photoURL} alt="" />
+                        ) : (
+                          member.displayName?.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "?"
+                        )}
+                      </div>
+                      <span>{member.displayName}</span>
+                      {member.role === "admin" && <span className="profile-admin-tag">Admin</span>}
+                    </div>
+                  ))}
+                </div>
+
+                {group.focus && (
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: 0 }}>
+                    Focus: <span style={{ color: "#63ffb4" }}>{group.focus}</span>
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "26px 0" }}>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", margin: "0 0 14px" }}>
+                  You are not in a group yet.
+                </p>
+                <Link to="/groups" className="link-pill">Find a group</Link>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── PROJECTS SECTION ── */}
-        <div className="fade-in" style={{
+        <div className="fade-in profile-section-card" style={{
           background: "#111113",
           border: "0.5px solid rgba(255,255,255,0.08)",
           borderRadius: 16,
@@ -622,7 +809,7 @@ export default function Profile() {
 
         {/* ── NEEDS (MY POSTS) SECTION ── */}
         {isMe && (
-          <div style={{
+          <div className="profile-section-card" style={{
             background: "#111113",
             border: "0.5px solid rgba(255,255,255,0.08)",
             borderRadius: 16,

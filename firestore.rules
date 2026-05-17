@@ -25,6 +25,24 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.uid == resource.data.authorId;
       allow delete: if request.auth != null;
     }
+
+    // Groups collection
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null 
+        && (request.auth.uid == resource.data.adminId
+         || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+    }
+
+    // Group Join Requests collection
+    match /groupJoinRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
     
     // Join Requests collection
     match /joinRequests/{requestId} {

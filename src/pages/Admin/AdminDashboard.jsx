@@ -6,6 +6,7 @@ import { auth } from "../../services/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc as docRef, getDoc } from "firebase/firestore";
 import { getDailyActiveUsers, getTotalUsersCount, getTotalProjectsCount, getTotalNeedsCount } from "../../services/analyticsService";
+import { deleteUserAppData } from "../../services/adminService";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export default function AdminDashboard() {
   const [deleting, setDeleting] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [adminMessage, setAdminMessage] = useState("");
+  const [adminError, setAdminError] = useState("");
   const [stats, setStats] = useState({ users: 0, projects: 0, needs: 0, daily: [] });
 
   const loadStats = async () => {
@@ -82,7 +85,11 @@ export default function AdminDashboard() {
   }, [activeTab]);
 
   const handleDeleteUser = async (userId, userName) => {
-    setDeleteTarget({ type: "user", id: userId, name: userName });
+    if (userId === auth.currentUser?.uid) {
+      setAdminError("You cannot delete the admin account you are currently signed in with.");
+      return;
+    }
+    setDeleteTarget({ type: "user", id: userId, name: userName || userId });
     setShowDeleteModal(true);
   };
 
@@ -100,21 +107,27 @@ export default function AdminDashboard() {
     if (!deleteTarget) return;
     setDeleting(deleteTarget.id);
     setShowDeleteModal(false);
+    setAdminMessage("");
+    setAdminError("");
     
     try {
       if (deleteTarget.type === "user") {
-        await deleteDoc(doc(db, "users", deleteTarget.id));
-        setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+        await deleteUserAppData(deleteTarget.id);
+        await loadData();
+        setAdminMessage("User app data was deleted from Firestore. Delete the Firebase Authentication user separately in Firebase Console.");
       } else if (deleteTarget.type === "project") {
         await deleteDoc(doc(db, "projects", deleteTarget.id));
         setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+        setAdminMessage("Project deleted.");
       } else if (deleteTarget.type === "need") {
         await deleteDoc(doc(db, "needs", deleteTarget.id));
         setNeeds((prev) => prev.filter((n) => n.id !== deleteTarget.id));
+        setAdminMessage("Post deleted.");
       }
       loadStats();
     } catch (err) {
       console.error("Error deleting:", err);
+      setAdminError(err.message || "Delete failed. Check Firestore rules and try again.");
     } finally {
       setDeleting(null);
       setDeleteTarget(null);
@@ -154,6 +167,25 @@ export default function AdminDashboard() {
         .admin-btn { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; }
         .admin-btn.delete { background: rgba(255,80,80,0.1); color: #ff5555; }
         .admin-btn.delete:hover { background: rgba(255,80,80,0.2); }
+        .admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .admin-note {
+          background: rgba(99,150,255,0.08);
+          border: 0.5px solid rgba(99,150,255,0.22);
+          color: rgba(255,255,255,0.64);
+          border-radius: 12px;
+          padding: 12px 14px;
+          font-size: 13px;
+          line-height: 1.5;
+          margin-bottom: 18px;
+        }
+        .admin-alert {
+          border-radius: 10px;
+          padding: 11px 13px;
+          font-size: 13px;
+          margin-bottom: 16px;
+        }
+        .admin-alert.success { background: rgba(99,255,180,0.08); border: 0.5px solid rgba(99,255,180,0.22); color: #63ffb4; }
+        .admin-alert.error { background: rgba(255,80,80,0.08); border: 0.5px solid rgba(255,80,80,0.22); color: #ff7777; }
         .empty-state { padding: 60px 20px; text-align: center; color: rgba(255,255,255,0.4); }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #18181b; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px; width: 90%; max-width: 360px; text-align: center; }
@@ -223,6 +255,15 @@ export default function AdminDashboard() {
             Posts ({needs.length})
           </button>
         </div>
+
+        {activeTab === "users" && (
+          <div className="admin-note">
+            Deleting a user here removes their Firestore profile and app data. Firebase Authentication users must be deleted from Firebase Console or through a backend Admin SDK function.
+          </div>
+        )}
+
+        {adminMessage && <div className="admin-alert success">{adminMessage}</div>}
+        {adminError && <div className="admin-alert error">{adminError}</div>}
 
         {loading ? (
           <div className="empty-state">Loading...</div>
@@ -329,6 +370,12 @@ export default function AdminDashboard() {
             <h3 className="modal-title">Delete {deleteTarget.type}?</h3>
             <p className="modal-text">
               Are you sure you want to delete <strong>"{deleteTarget.name}"</strong>? This action cannot be undone.
+              {deleteTarget.type === "user" && (
+                <>
+                  <br /><br />
+                  This removes Firestore app data only. Delete the Auth account separately in Firebase Console.
+                </>
+              )}
             </p>
             <div className="modal-actions">
               <button className="modal-btn cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>

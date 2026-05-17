@@ -10,6 +10,7 @@ import CreateProject from "./pages/Projects/CreateProject";
 import ProjectDetail from "./pages/Projects/ProjectDetail";
 import ChatPage from "./pages/Chat/ChatPage";
 import NeedBoard from "./pages/Needs/NeedBoard";
+import Groups from "./pages/Groups/Groups";
 import JoinRequests from "./pages/Requests/JoinRequests";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import NotificationListener from "./components/layout/NotificationListener";
@@ -89,6 +90,9 @@ export default function App() {
         } />
         <Route path="/needs" element={
           <OnboardedRoute><NeedBoard /></OnboardedRoute>
+        } />
+        <Route path="/groups" element={
+          <OnboardedRoute><Groups /></OnboardedRoute>
         } />
         <Route path="/requests" element={
           <OnboardedRoute><JoinRequests /></OnboardedRoute>

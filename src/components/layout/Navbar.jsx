@@ -5,6 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../../services/firebase";
 import { useAuthStore } from "../../store/authStore";
 import { getUserJoinRequests } from "../../services/joinService";
+import { getUserGroupJoinRequests } from "../../services/groupService";
 import { globalSearch } from "../../services/searchService";
 
 export default function Navbar() {
@@ -25,9 +26,10 @@ export default function Navbar() {
 
   useEffect(() => {
     if (user?.uid) {
-      getUserJoinRequests(user.uid).then((requests) => {
+      Promise.all([getUserJoinRequests(user.uid), getUserGroupJoinRequests(user.uid)]).then(([requests, groupRequests]) => {
         const incoming = requests.filter((r) => r.projectOwnerId === user.uid && r.status === "pending");
-        setPendingRequests(incoming.length);
+        const incomingGroups = groupRequests.filter((r) => r.groupAdminId === user.uid && r.status === "pending");
+        setPendingRequests(incoming.length + incomingGroups.length);
       });
     }
   }, [user?.uid]);
@@ -104,6 +106,7 @@ export default function Navbar() {
   const navLinks = [
     { label: "Home", path: "/home" },
     { label: "Opportunities", path: "/needs" },
+    { label: "Groups", path: "/groups" },
     { label: "Requests", path: "/requests", badge: pendingRequests },
     { label: "Messages", path: "/chat", dot: unreadMessages.uid === user?.uid && unreadMessages.hasUnread },
   ];
