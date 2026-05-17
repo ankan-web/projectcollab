@@ -5,6 +5,7 @@ import { useAuthStore } from "../../store/authStore";
 import SkillInput from "../../components/ui/SkillInput";
 
 const STEPS = ["Profile", "Skills", "Links"];
+const DEFAULT_COLLEGE = "Adamas University";
 
 const DOMAINS = [
   "Web Development", "Mobile Apps", "Machine Learning / AI",
@@ -22,7 +23,7 @@ export default function Onboarding() {
 
   const [form, setForm] = useState({
     displayName: user?.displayName || "",
-    college: "",
+    college: DEFAULT_COLLEGE,
     bio: "",
     domain: "",
     skills: [],
@@ -34,7 +35,7 @@ export default function Onboarding() {
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
   const canNext = () => {
-    if (step === 0) return form.displayName.trim() && form.college.trim() && form.bio.trim();
+    if (step === 0) return form.displayName.trim() && form.bio.trim();
     if (step === 1) return form.skills.length >= 1;
     return true;
   };
@@ -47,7 +48,7 @@ export default function Onboarding() {
     setSaving(true);
     setError("");
     try {
-      const data = { ...form, onboarded: true };
+      const data = { ...form, college: DEFAULT_COLLEGE, onboarded: true };
       await updateUserDoc(user.uid, data);
       setProfile({ ...data, uid: user.uid });
       navigate("/home");
@@ -141,6 +142,16 @@ export default function Onboarding() {
           margin-bottom: 7px;
           letter-spacing: 0.03em;
         }
+        .locked-college {
+          width: 100%;
+          background: rgba(99,255,180,0.07);
+          border: 0.5px solid rgba(99,255,180,0.22);
+          border-radius: 10px;
+          padding: 12px 14px;
+          color: #63ffb4;
+          font-size: 14px;
+          font-weight: 500;
+        }
       `}</style>
 
       <div style={{ width: "100%", maxWidth: 520 }}>
@@ -230,12 +241,7 @@ export default function Onboarding() {
 
               <div style={{ marginBottom: 18 }}>
                 <label className="ob-label">College / University *</label>
-                <input
-                  className="ob-input"
-                  value={form.college}
-                  onChange={(e) => set("college", e.target.value)}
-                  placeholder="e.g. IIT Bombay, BITS Pilani, VIT..."
-                />
+                <div className="locked-college">{DEFAULT_COLLEGE}</div>
               </div>
 
               <div style={{ marginBottom: 18 }}>

@@ -13,6 +13,8 @@ import {
 import { db } from "./firebase";
 import { createNotification } from "./notificationService";
 
+const DEFAULT_COLLEGE = "Adamas University";
+
 const getFirebasePhotoURL = (firebaseUser) => {
   if (firebaseUser.photoURL) return firebaseUser.photoURL;
 
@@ -48,7 +50,7 @@ export const createUserDoc = async (firebaseUser, githubAccessToken = null) => {
       displayName: firebaseUser.displayName || "",
       email: firebaseUser.email || "",
       photoURL: newPhotoURL,
-      college: "",
+      college: DEFAULT_COLLEGE,
       bio: "",
       skills: [],
       githubUsername: "",
