@@ -187,7 +187,31 @@ export default function NeedBoard() {
         }
         .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: rgba(99,255,180,0.45); }
         .form-textarea { min-height: 100px; resize: vertical; }
-        .form-select { cursor: pointer; }
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+          content: "";
+          position: absolute;
+          right: 14px;
+          top: 50%;
+          width: 8px;
+          height: 8px;
+          border-right: 1.5px solid rgba(255,255,255,0.5);
+          border-bottom: 1.5px solid rgba(255,255,255,0.5);
+          transform: translateY(-65%) rotate(45deg);
+          pointer-events: none;
+        }
+        .form-select {
+          cursor: pointer;
+          appearance: none;
+          padding-right: 40px;
+          background-color: #202024;
+          color-scheme: dark;
+        }
+        .form-select option {
+          background: #18181b;
+          color: #fff;
+          padding: 10px;
+        }
         .form-actions { display: flex; gap: 12px; margin-top: 20px; }
         .form-btn {
           flex: 1; padding: 12px; border-radius: 10px; font-family: 'Syne', sans-serif;
@@ -310,15 +334,17 @@ export default function NeedBoard() {
             <form onSubmit={handleSubmit}>
               <div className="form-field">
                 <label className="form-label">Type</label>
-                <select
-                  className="form-select"
-                  value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value })}
-                >
-                  {NEED_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
+                <div className="select-wrap">
+                  <select
+                    className="form-select"
+                    value={form.type}
+                    onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  >
+                    {NEED_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="form-field">
                 <label className="form-label">Title</label>
