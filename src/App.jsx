@@ -16,6 +16,9 @@ import JoinRequests from "./pages/Requests/JoinRequests";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AboutDev from "./pages/AboutDev/AboutDev";
 import NotFound from "./pages/NotFound/NotFound";
+import Terms from "./pages/Legal/Terms";
+import Privacy from "./pages/Legal/Privacy";
+import AboutUs from "./pages/Legal/AboutUs";
 import NotificationListener from "./components/layout/NotificationListener";
 
 function ProtectedRoute({ children }) {
@@ -64,6 +67,9 @@ export default function App() {
       <NotificationListener />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/about" element={<AboutUs />} />
         <Route path="/onboarding" element={
           <ProtectedRoute><Onboarding /></ProtectedRoute>
         } />

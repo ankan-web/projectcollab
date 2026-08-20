@@ -10,7 +10,7 @@ import {
   GithubAuthProvider,
 } from "firebase/auth";
 import { auth, githubProvider, googleProvider } from "../../services/firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { createUserDoc, checkUserExists } from "../../services/userService";
 import { useAuthStore } from "../../store/authStore";
 import { isAdminCredentials, startAdminSession, adminUser, adminProfile } from "../../services/adminService";
@@ -661,6 +661,26 @@ export default function App() {
         }
         .auth-switch span:hover { text-decoration: underline; }
 
+        .auth-links {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 26px;
+        }
+        .auth-links-sep { color: rgba(234, 234, 234, 0.15); font-size: 10px; letter-spacing: 0.1em; }
+        .auth-link {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: rgba(234, 234, 234, 0.4);
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .auth-link:hover { color: #E61919; }
+
         .mobile-brand { display: none; }
 
         @media (max-width: 860px) {
@@ -916,6 +936,20 @@ export default function App() {
               {tab === "signin" ? "Join HackHive" : "Sign in"}
             </span>
           </p>
+
+          <div className="auth-links anim" style={{ "--d": "0.78s" }}>
+            <span className="auth-links-sep">──</span>
+            {[
+              { label: "Terms & Conditions", to: "/terms" },
+              { label: "Privacy Policy", to: "/privacy" },
+              { label: "About Us", to: "/about" },
+            ].map((l) => (
+              <Link key={l.to} to={l.to} className="auth-link">
+                {"[ "}{l.label}{" ]"}
+              </Link>
+            ))}
+            <span className="auth-links-sep">──</span>
+          </div>
         </div>
       </div>
     </div>
