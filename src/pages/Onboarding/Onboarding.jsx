@@ -79,13 +79,13 @@ export default function Onboarding() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
+          gap: 1px;
           margin-bottom: 44px;
         }
-        .ob-logo-sq { width: 18px; height: 18px; display: block; }
+        .ob-logo-sq { width: 30px; height: 30px; display: block; }
         .ob-logo-text {
           font-family: 'Archivo Black', sans-serif;
-          font-size: 16px;
+          font-size: 28px;
           color: #EAEAEA;
           letter-spacing: -0.01em;
         }
