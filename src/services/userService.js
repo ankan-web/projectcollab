@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { createNotification } from "./notificationService";
+import { checkIsAdmin } from "./adminService";
 
 const DEFAULT_COLLEGE = "Adamas University";
 
@@ -43,6 +44,7 @@ export const createUserDoc = async (firebaseUser, githubAccessToken = null) => {
   const ref = doc(db, "users", firebaseUser.uid);
   const snap = await getDoc(ref);
   const newPhotoURL = getFirebasePhotoURL(firebaseUser) || await getGitHubPhotoURL(githubAccessToken);
+  const isAdmin = await checkIsAdmin(firebaseUser.email);
 
   if (!snap.exists()) {
     await setDoc(ref, {
@@ -57,12 +59,16 @@ export const createUserDoc = async (firebaseUser, githubAccessToken = null) => {
       linkedIn: "",
       portfolio: "",
       onboarded: false,
+      isAdmin,
       createdAt: serverTimestamp(),
     });
   } else {
     const existingData = snap.data();
     if (newPhotoURL && existingData.photoURL !== newPhotoURL) {
       await updateDoc(ref, { photoURL: newPhotoURL });
+    }
+    if (isAdmin && !existingData.isAdmin) {
+      await updateDoc(ref, { isAdmin: true });
     }
   }
 

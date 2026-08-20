@@ -9,9 +9,8 @@ import {
   createUserWithEmailAndPassword,
   GithubAuthProvider,
 } from "firebase/auth";
-import { auth, githubProvider, googleProvider, db } from "../../services/firebase";
+import { auth, githubProvider, googleProvider } from "../../services/firebase";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
 import { createUserDoc, checkUserExists } from "../../services/userService";
 import { useAuthStore } from "../../store/authStore";
 
@@ -101,10 +100,9 @@ export default function App() {
           ? await signInWithEmailAndPassword(auth, email, password)
           : await createUserWithEmailAndPassword(auth, email, password);
 
-      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-      const userData = userDoc.data ? userDoc.data() : null;
+      const profile = await createUserDoc(userCredential.user);
 
-      if (userData?.isAdmin) {
+      if (profile?.isAdmin) {
         navigate("/admin");
       } else {
         navigate("/home");
