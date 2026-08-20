@@ -5,6 +5,7 @@ import { useAuthStore } from "./store/authStore";
 import Login from "./pages/Auth/Login";
 import Onboarding from "./pages/Onboarding/Onboarding";
 import Home from "./pages/Home/Home";
+import People from "./pages/People/People";
 import Profile from "./pages/Profile/Profile";
 import CreateProject from "./pages/Projects/CreateProject";
 import ProjectDetail from "./pages/Projects/ProjectDetail";
@@ -68,6 +69,9 @@ export default function App() {
         } />
         <Route path="/home" element={
           <OnboardedRoute><Home /></OnboardedRoute>
+        } />
+        <Route path="/people" element={
+          <OnboardedRoute><People /></OnboardedRoute>
         } />
         <Route path="/profile/:uid" element={
           <OnboardedRoute><Profile /></OnboardedRoute>

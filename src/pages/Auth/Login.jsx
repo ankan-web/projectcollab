@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // ============================================================================
 // ORIGINAL IMPORTS: Uncomment these when pasting into your project
@@ -27,14 +27,40 @@ const TERM_STATS = [
   { p: "groups active", v: "126" },
 ];
 
+const TICKER_WORDS = ["COLLABORATE", "BUILD", "SHIP", "LEARN", "CONNECT", "CREATE"];
+
 export default function App() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState(TERM_STATS.map(() => 0));
   const { setUser, setProfile } = useAuthStore();
+
+  useEffect(() => {
+    const timeouts = [];
+    TERM_STATS.forEach((s, i) => {
+      const target = parseInt(s.v.replace(/,/g, ""), 10);
+      timeouts.push(
+        setTimeout(() => {
+          const start = performance.now();
+          const dur = [1400, 1200, 900][i];
+          const tick = (now) => {
+            const p = Math.min((now - start) / dur, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            const val = Math.round(target * eased);
+            setStats((prev) => prev.map((x, j) => (j === i ? val : x)));
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }, 1000 + i * 260)
+      );
+    });
+    return () => timeouts.forEach(clearTimeout);
+  }, []);
 
   const syncSignedInUser = async (firebaseUser, githubAccessToken = null) => {
     const profile = await createUserDoc(firebaseUser, githubAccessToken);
@@ -130,47 +156,102 @@ export default function App() {
   return (
     <div className="login-main">
       <style>{`
+        /* ══ BASE ══ */
         .login-main {
           min-height: 100dvh;
           display: grid;
-          grid-template-columns: 1.05fr 0.95fr;
+          grid-template-columns: 1.08fr 0.92fr;
           gap: 1px;
           background: #1A1A1A;
           font-family: 'JetBrains Mono', monospace;
           color: #EAEAEA;
+          overflow: hidden;
         }
 
-        /* ── Motion primitives (CSS only, transform/opacity) ── */
+        /* Film grain overlay */
+        .login-main::after {
+          content: "";
+          position: fixed;
+          inset: 0;
+          z-index: 40;
+          pointer-events: none;
+          opacity: 0.05;
+          mix-blend-mode: overlay;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Motion primitives (CSS only, transform/opacity) */
         .anim { animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0s); }
         @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
         .blink { animation: blink 1.1s steps(1) infinite; }
         @keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
         .pulse { animation: pulse 1.6s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
-        .term-line { animation: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i) * 110ms + 0.25s); }
+        @keyframes breathe {
+          0%, 100% { opacity: 0.45; }
+          50% { opacity: 0.9; }
+        }
+        @keyframes scan {
+          0% { transform: translateY(-15vh); }
+          100% { transform: translateY(115vh); }
+        }
+        @keyframes wipein {
+          to { clip-path: inset(0 0 0 0); }
+        }
+        @keyframes flicker {
+          0%, 100% { opacity: 1; }
+          92% { opacity: 1; }
+          93% { opacity: 0.86; }
+          94% { opacity: 1; }
+          97% { opacity: 0.94; }
+          98% { opacity: 1; }
+        }
 
         /* ══ LEFT PANEL ══ */
         .left-panel {
           position: relative;
-          background: #0A0A0A;
+          background:
+            radial-gradient(58% 42% at 14% 16%, rgba(230, 25, 25, 0.12), transparent 72%),
+            radial-gradient(46% 40% at 88% 92%, rgba(230, 25, 25, 0.06), transparent 70%),
+            #0A0A0A;
           padding: clamp(32px, 5vw, 56px) clamp(76px, 7vw, 96px) clamp(28px, 4vw, 48px) clamp(32px, 5vw, 56px);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           overflow: hidden;
           min-height: 100dvh;
+          animation: flicker 9s steps(1) infinite;
+        }
+        .left-panel::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: radial-gradient(50% 40% at 18% 28%, rgba(230, 25, 25, 0.16), transparent 72%);
+          animation: breathe 6s ease-in-out infinite;
         }
         .left-panel::after {
           content: "";
           position: absolute;
           inset: 0;
           background:
-            linear-gradient(rgba(230,25,25,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(230,25,25,0.05) 1px, transparent 1px);
+            linear-gradient(rgba(230, 25, 25, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(230, 25, 25, 0.05) 1px, transparent 1px);
           background-size: 44px 44px;
           pointer-events: none;
           mask-image: radial-gradient(120% 100% at 0% 0%, #000 30%, transparent 90%);
           -webkit-mask-image: radial-gradient(120% 100% at 0% 0%, #000 30%, transparent 90%);
+        }
+        .scanline {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 120px;
+          z-index: 2;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent, rgba(230, 25, 25, 0.07), transparent);
+          animation: scan 8s linear infinite;
         }
         .rail {
           position: absolute;
@@ -189,15 +270,15 @@ export default function App() {
 
         .lp-header {
           position: relative;
-          z-index: 1;
+          z-index: 3;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 16px;
         }
         .login-logo { display: flex; align-items: center; gap: 10px; }
-        .login-logo-sq { width: 10px; height: 10px; background: #E61919; }
-        .login-logo-text { font-family: 'Archivo Black', sans-serif; font-size: 17px; letter-spacing: -0.01em; color: #EAEAEA; }
+        .login-logo-sq { width: 30px; height: 30px; display: block; }
+        .login-logo-text { font-family: 'Archivo Black', sans-serif; font-size: 26px; letter-spacing: -0.01em; color: #EAEAEA; }
         .lp-tag {
           font-size: 9px;
           font-weight: 700;
@@ -206,7 +287,7 @@ export default function App() {
           text-align: right;
         }
 
-        .lp-hero { position: relative; z-index: 1; max-width: 520px; }
+        .lp-hero { position: relative; z-index: 3; max-width: 540px; }
         .kicker {
           display: inline-flex;
           align-items: center;
@@ -218,7 +299,7 @@ export default function App() {
           color: rgba(234, 234, 234, 0.5);
           margin: 0 0 20px;
         }
-        .kicker::before { content: ""; width: 7px; height: 7px; background: #E61919; }
+        .kicker::before { content: ""; width: 7px; height: 7px; background: #E61919; box-shadow: 0 0 12px rgba(230, 25, 25, 0.8); }
 
         .hero-macro {
           font-family: 'Archivo Black', sans-serif;
@@ -229,7 +310,10 @@ export default function App() {
           color: #EAEAEA;
           margin: 0 0 22px;
         }
-        .hero-macro .red { color: #E61919; }
+        .hero-macro .red {
+          color: #E61919;
+          text-shadow: 0 0 80px rgba(230, 25, 25, 0.4);
+        }
 
         .hero-copy {
           font-size: 12px;
@@ -241,10 +325,23 @@ export default function App() {
 
         /* Terminal window */
         .term-window {
+          position: relative;
           border: 1px solid #2A2A2A;
           background: #0E0E0E;
-          box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.8);
+          box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.85);
         }
+        .term-window::before,
+        .term-window::after {
+          content: "";
+          position: absolute;
+          width: 18px;
+          height: 18px;
+          border-color: rgba(230, 25, 25, 0.8);
+          border-style: solid;
+          pointer-events: none;
+        }
+        .term-window::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
+        .term-window::after { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
         .term-bar {
           display: flex;
           align-items: center;
@@ -254,7 +351,7 @@ export default function App() {
           background: #111111;
         }
         .diode { width: 8px; height: 8px; }
-        .diode.red { background: #E61919; }
+        .diode.red { background: #E61919; box-shadow: 0 0 8px rgba(230, 25, 25, 0.9); }
         .diode.dim { background: #2A2A2A; }
         .term-title {
           margin-left: auto;
@@ -263,11 +360,18 @@ export default function App() {
           letter-spacing: 0.06em;
         }
         .term-body { padding: 16px 14px 18px; font-size: 11px; line-height: 1.9; color: rgba(234, 234, 234, 0.7); }
-        .term-line { display: flex; align-items: baseline; gap: 10px; }
-        .term-p { color: rgba(234, 234, 234, 0.72); }
+        .term-line {
+          display: flex;
+          align-items: baseline;
+          gap: 10px;
+          clip-path: inset(0 100% 0 0);
+          animation: wipein 0.45s steps(14) forwards;
+          animation-delay: calc(var(--i) * 140ms + 0.3s);
+        }
+        .term-p { color: rgba(234, 234, 234, 0.72); white-space: nowrap; }
         .term-dots { flex: 1; border-bottom: 1px dotted rgba(234, 234, 234, 0.22); transform: translateY(-3px); }
         .term-v { color: #EAEAEA; font-weight: 700; font-variant-numeric: tabular-nums; }
-        .term-v.green { color: #4AF626; }
+        .term-v.green { color: #4AF626; text-shadow: 0 0 10px rgba(74, 246, 38, 0.5); }
         .term-stat { margin-top: 2px; }
         .term-stat .term-p .colon { color: #E61919; }
         .term-cursor { margin-top: 12px; color: rgba(234, 234, 234, 0.6); font-size: 11px; }
@@ -275,7 +379,7 @@ export default function App() {
 
         .lp-status {
           position: relative;
-          z-index: 1;
+          z-index: 3;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -286,7 +390,40 @@ export default function App() {
           color: rgba(234, 234, 234, 0.35);
         }
         .lp-status-left { display: flex; align-items: center; gap: 9px; }
-        .status-dot { width: 7px; height: 7px; background: #4AF626; display: inline-block; }
+        .status-dot {
+          width: 7px;
+          height: 7px;
+          background: #4AF626;
+          display: inline-block;
+          box-shadow: 0 0 10px rgba(74, 246, 38, 0.7);
+        }
+
+        /* Status ticker */
+        .lp-ticker {
+          position: relative;
+          z-index: 3;
+          margin-top: 18px;
+          border-top: 1px solid #1A1A1A;
+          overflow: hidden;
+          white-space: nowrap;
+          font-size: 9px;
+          letter-spacing: 0.2em;
+          color: rgba(234, 234, 234, 0.28);
+          padding: 10px 0 0;
+          mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+          -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+        }
+        .lp-ticker-track {
+          display: inline-flex;
+          gap: 48px;
+          animation: ticker 28s linear infinite;
+        }
+        .lp-ticker-track span { display: inline-flex; align-items: center; gap: 48px; }
+        .lp-ticker-track i { font-style: normal; color: #E61919; }
+        @keyframes ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
 
         /* ══ RIGHT PANEL ══ */
         .right-panel {
@@ -328,16 +465,32 @@ export default function App() {
           line-height: 1.7;
         }
 
+        /* Sliding segmented control */
         .auth-seg {
+          position: relative;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1px;
-          background: #1A1A1A;
-          border: 1px solid #1A1A1A;
+          gap: 0;
+          background: #0E0E0E;
+          border: 1px solid #2A2A2A;
           margin-bottom: 24px;
         }
+        .auth-seg-thumb {
+          position: absolute;
+          top: 1px;
+          bottom: 1px;
+          left: 1px;
+          width: calc(50% - 1px);
+          background: #E61919;
+          box-shadow: 0 0 24px rgba(230, 25, 25, 0.4);
+          transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+          z-index: 0;
+        }
+        .auth-seg-thumb.right { transform: translateX(100%); }
         .auth-seg-btn {
-          background: #131313;
+          position: relative;
+          z-index: 1;
+          background: none;
           border: none;
           cursor: pointer;
           padding: 13px 12px;
@@ -347,10 +500,10 @@ export default function App() {
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: rgba(234, 234, 234, 0.45);
-          transition: background 0.15s, color 0.15s;
+          transition: color 0.2s;
         }
         .auth-seg-btn:hover { color: #EAEAEA; }
-        .auth-seg-btn.active { background: #E61919; color: #0A0A0A; }
+        .auth-seg-btn.active { color: #0A0A0A; }
 
         .oauth-btn {
           width: 100%;
@@ -370,7 +523,7 @@ export default function App() {
           text-align: left;
           border-radius: 0;
         }
-        .oauth-btn:hover { background: #1A1A1A; border-color: rgba(234, 234, 234, 0.4); }
+        .oauth-btn:hover { background: #1A1A1A; border-color: rgba(230, 25, 25, 0.55); }
         .oauth-btn:active { transform: translateY(1px); }
         .oauth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .oauth-arrow { color: rgba(234, 234, 234, 0.3); font-size: 14px; transition: color 0.15s, transform 0.15s; }
@@ -382,7 +535,7 @@ export default function App() {
           gap: 12px;
           margin: 22px 0;
         }
-        .divider-line { flex: 1; height: 1px; background: #1A1A1A; }
+        .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #2A2A2A, transparent); }
         .divider-text { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(234, 234, 234, 0.35); }
 
         .form-field { margin-bottom: 16px; }
@@ -405,6 +558,7 @@ export default function App() {
           color: rgba(234, 234, 234, 0.35);
           pointer-events: none;
           transition: color 0.15s;
+          z-index: 1;
         }
         .field-input-wrap:focus-within .field-prompt { color: #E61919; }
         .auth-input {
@@ -412,7 +566,7 @@ export default function App() {
           background: #111111;
           border: 1px solid #2A2A2A;
           border-radius: 0;
-          padding: 13px 14px 13px 30px;
+          padding: 13px 42px 13px 30px;
           color: #EAEAEA;
           font-family: 'JetBrains Mono', monospace;
           font-size: 13px;
@@ -423,10 +577,27 @@ export default function App() {
         .auth-input:focus {
           border-color: #E61919;
           background: #141414;
-          box-shadow: 0 0 0 1px rgba(230, 25, 25, 0.35);
+          box-shadow: 0 0 0 1px rgba(230, 25, 25, 0.35), 0 0 28px rgba(230, 25, 25, 0.12);
         }
+        .pass-toggle {
+          position: absolute;
+          right: 6px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: rgba(234, 234, 234, 0.4);
+          cursor: pointer;
+          padding: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.15s;
+        }
+        .pass-toggle:hover { color: #EAEAEA; }
 
         .submit-btn {
+          position: relative;
           width: 100%;
           display: flex;
           align-items: center;
@@ -445,7 +616,21 @@ export default function App() {
           cursor: pointer;
           transition: background 0.15s, transform 0.1s;
           margin-top: 4px;
+          overflow: hidden;
         }
+        .submit-btn::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -60%;
+          width: 40%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+          transform: skewX(-20deg);
+          transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          pointer-events: none;
+        }
+        .submit-btn:hover:not(:disabled)::after { left: 120%; }
         .submit-btn:hover:not(:disabled) { background: #FF2A2A; }
         .submit-btn:active:not(:disabled) { transform: translateY(1px); }
         .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -479,7 +664,7 @@ export default function App() {
         .mobile-brand { display: none; }
 
         @media (max-width: 860px) {
-          .login-main { display: flex; flex-direction: column; }
+          .login-main { display: flex; flex-direction: column; overflow: auto; }
           .left-panel { display: none !important; }
           .right-panel {
             width: 100%;
@@ -497,7 +682,9 @@ export default function App() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .anim, .term-line, .blink, .pulse { animation: none !important; }
+          .anim, .term-line, .blink, .pulse, .scanline,
+          .left-panel, .lp-ticker-track, .submit-btn::after { animation: none !important; }
+          .left-panel::before { animation: none !important; }
           * { transition-duration: 0.01ms !important; }
         }
       `}</style>
@@ -505,11 +692,12 @@ export default function App() {
       {/* ── LEFT PANEL (Hidden on Mobile) ── */}
       <div className="left-panel">
         <div className="rail"><span className="rail-red">///</span> SECURE CHANNEL — CH-01</div>
+        <div className="scanline" aria-hidden="true" />
 
         <header className="lp-header">
           <div className="login-logo">
-            <div className="login-logo-sq" />
-            <span className="login-logo-text">HackHive</span>
+            <img src="/Newfavicon.svg" alt="HackHive logo" className="login-logo-sq" />
+            <span className="login-logo-text">ackHive</span>
           </div>
           <span className="lp-tag">SYS-04 // Student builder network</span>
         </header>
@@ -549,7 +737,7 @@ export default function App() {
                 <div className="term-line term-stat" style={{ "--i": i + 4 }} key={s.p}>
                   <span className="term-p">{"> "}{s.p} <span className="colon">::</span></span>
                   <span className="term-dots" />
-                  <span className="term-v">{s.v}</span>
+                  <span className="term-v">{stats[i].toLocaleString()}</span>
                 </div>
               ))}
               <div className="term-cursor anim" style={{ "--d": "0.9s" }}>
@@ -560,21 +748,30 @@ export default function App() {
           </div>
         </div>
 
-        <footer className="lp-status anim" style={{ "--d": "0.55s" }}>
-          <span className="lp-status-left">
-            <span className="status-dot pulse" />
-            Sys status: operational
-          </span>
-          <span>REV 2.6 /// CH-01</span>
-        </footer>
+        <div>
+          <footer className="lp-status anim" style={{ "--d": "0.55s" }}>
+            <span className="lp-status-left">
+              <span className="status-dot pulse" />
+              Sys status: operational
+            </span>
+            <span>REV 2.6 /// CH-01</span>
+          </footer>
+          <div className="lp-ticker anim" style={{ "--d": "0.7s" }} aria-hidden="true">
+            <div className="lp-ticker-track">
+              {[...TICKER_WORDS, ...TICKER_WORDS].map((w, i) => (
+                <span key={i}>{w} <i>+</i></span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── RIGHT PANEL (Forms) ── */}
       <div className="right-panel">
         <div className="form-container">
           <div className="mobile-brand">
-            <div className="login-logo-sq" />
-            <span className="login-logo-text">HackHive</span>
+            <img src="/Newfavicon.svg" alt="HackHive logo" className="login-logo-sq" />
+            <span className="login-logo-text">ackHive</span>
           </div>
 
           <p className="auth-kicker anim" style={{ "--d": "0.05s" }}>
@@ -592,6 +789,7 @@ export default function App() {
           </p>
 
           <div className="auth-seg anim" style={{ "--d": "0.25s" }}>
+            <span className={`auth-seg-thumb ${tab === "register" ? "right" : ""}`} aria-hidden="true" />
             {["signin", "register"].map((t) => (
               <button
                 key={t}
@@ -655,12 +853,32 @@ export default function App() {
                 <input
                   id="login-pass"
                   className="auth-input"
-                  type="password"
+                  type={showPass ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <button
+                  type="button"
+                  className="pass-toggle"
+                  onClick={() => setShowPass(!showPass)}
+                  aria-label={showPass ? "Hide password" : "Show password"}
+                >
+                  {showPass ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                      <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
               </div>
             </div>
 

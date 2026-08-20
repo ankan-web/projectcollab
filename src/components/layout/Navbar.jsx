@@ -147,6 +147,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: "Home", path: "/home" },
+    { label: "People", path: "/people" },
     { label: "Opportunities", path: "/needs" },
     { label: "Groups", path: "/groups" },
     { label: "Requests", path: "/requests", badge: pendingRequests },
@@ -176,9 +177,9 @@ export default function Navbar() {
           font-family: 'JetBrains Mono', monospace;
           box-shadow: 0 8px 24px -12px rgba(0,0,0,0.9);
         }
-        .nav-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; flex-shrink: 0; }
-        .nav-logo-dot { width: 10px; height: 10px; background: #E61919; flex-shrink: 0; }
-        .nav-logo-text { font-family: 'Archivo Black', sans-serif; font-weight: 400; font-size: 17px; color: #EAEAEA; letter-spacing: -0.01em; }
+        .nav-logo { display: flex; align-items: center; gap: 1px; text-decoration: none; flex-shrink: 0; }
+        .nav-logo-dot { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+        .nav-logo-text { font-family: 'Archivo Black', sans-serif; font-weight: 400; font-size: 25px; color: #EAEAEA; letter-spacing: -0.01em; }
         .nav-links { display: flex; gap: 2px; flex: 1; }
         .nav-link { padding: 8px 15px; border-radius: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(234,234,234,0.72); text-decoration: none; transition: all 0.15s; }
         .nav-link:hover { color: #FFFFFF; background: #1A1A1A; }
@@ -270,8 +271,8 @@ export default function Navbar() {
 
       <nav className="navbar">
         <Link to="/home" className="nav-logo">
-          <div className="nav-logo-dot" />
-          <span className="nav-logo-text">HackHive</span>
+          <img src="/Newfavicon.svg" alt="HackHive logo" className="nav-logo-dot" />
+          <span className="nav-logo-text">ackHive</span>
         </Link>
 
         <div className="nav-links">

@@ -52,7 +52,7 @@ export default function NotFound() {
           padding: 24px 0;
         }
         .nf-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
-        .nf-logo-dot { width: 9px; height: 9px; background: #E61919; }
+        .nf-logo-dot { width: 18px; height: 18px; display: block; }
         .nf-logo-text { font-family: 'Archivo Black', sans-serif; font-size: 15px; font-weight: 400; text-transform: uppercase; letter-spacing: -0.01em; color: #EAEAEA; }
         .nf-nav-actions { display: flex; align-items: center; gap: 10px; }
         .nf-nav-link {
@@ -395,8 +395,8 @@ export default function NotFound() {
       <div className="nf-shell">
         <nav className="nf-nav">
           <Link to="/" className="nf-logo">
-            <span className="nf-logo-dot" />
-            <span className="nf-logo-text">HackHive</span>
+            <img src="/Newfavicon.svg" alt="HackHive logo" className="nf-logo-dot" />
+            <span className="nf-logo-text">ackHive</span>
           </Link>
           <div className="nf-nav-actions">
             <Link to="/needs" className="nf-nav-link">Opportunities</Link>

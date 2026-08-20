@@ -82,7 +82,7 @@ export default function Onboarding() {
           gap: 10px;
           margin-bottom: 44px;
         }
-        .ob-logo-sq { width: 10px; height: 10px; background: #E61919; }
+        .ob-logo-sq { width: 18px; height: 18px; display: block; }
         .ob-logo-text {
           font-family: 'Archivo Black', sans-serif;
           font-size: 16px;
@@ -302,8 +302,8 @@ export default function Onboarding() {
 
       <div className="ob-wrap">
         <div className="ob-logo">
-          <div className="ob-logo-sq" />
-          <span className="ob-logo-text">HackHive</span>
+          <img src="/Newfavicon.svg" alt="HackHive logo" className="ob-logo-sq" />
+          <span className="ob-logo-text">ackHive</span>
         </div>
 
         <div className="ob-steps">

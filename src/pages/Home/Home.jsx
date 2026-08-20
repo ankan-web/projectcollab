@@ -1,18 +1,15 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import DiscoverFeed from "./DiscoverFeed";
-import PeopleSearch from "./PeopleSearch";
 
 const MARQUEE_WORDS = ["COLLABORATE", "BUILD", "SHIP", "LEARN", "CONNECT", "CREATE"];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("projects");
   const feedRef = useRef(null);
   const navigate = useNavigate();
 
   const goToFeed = () => {
-    setActiveTab("projects");
     requestAnimationFrame(() => feedRef.current?.scrollIntoView({ behavior: "smooth" }));
   };
 
@@ -283,6 +280,7 @@ export default function Home() {
           .home-shell { padding-bottom: 80px; }
           .hero { min-height: auto; align-items: flex-start; }
           .hero-inner { padding: 48px 0 24px; }
+          .hero-media { display: none; }
           .hero-media-float { left: -6px; bottom: 12px; }
           .hero-cta { padding: 14px 20px; }
           .seg-btn { padding: 11px 18px; font-size: 10px; }
@@ -360,26 +358,7 @@ export default function Home() {
         </div>
 
         <div style={{ width: "100%", maxWidth: 1060, margin: "0 auto", padding: "0 24px" }} ref={feedRef}>
-          <div className="seg-row" role="tablist" aria-label="Browse content">
-            <button
-              role="tab"
-              aria-selected={activeTab === "projects"}
-              className={`seg-btn ${activeTab === "projects" ? "active" : ""}`}
-              onClick={() => setActiveTab("projects")}
-            >
-              Projects
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === "people"}
-              className={`seg-btn ${activeTab === "people" ? "active" : ""}`}
-              onClick={() => setActiveTab("people")}
-            >
-              People
-            </button>
-          </div>
-
-          {activeTab === "projects" ? <DiscoverFeed /> : <PeopleSearch />}
+          <DiscoverFeed />
         </div>
 
         <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
