@@ -60,174 +60,283 @@ export default function Onboarding() {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#09090b",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "40px 20px",
-      fontFamily: "'DM Sans', sans-serif",
-    }}>
+    <div className="ob-page">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        .ob-page {
+          min-height: 100dvh;
+          background: #0A0A0A;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+          font-family: 'JetBrains Mono', monospace;
+          color: #EAEAEA;
+        }
+        .ob-wrap { width: 100%; max-width: 560px; }
+        .ob-logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 44px;
+        }
+        .ob-logo-sq { width: 10px; height: 10px; background: #E61919; }
+        .ob-logo-text {
+          font-family: 'Archivo Black', sans-serif;
+          font-size: 16px;
+          color: #EAEAEA;
+          letter-spacing: -0.01em;
+        }
+
+        .ob-steps {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 32px;
+          align-items: center;
+          justify-content: center;
+        }
+        .ob-step {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .ob-step-box {
+          min-width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #2A2A2A;
+          background: #131313;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(234,234,234,0.4);
+        }
+        .ob-step-box.done { background: #E61919; border-color: #E61919; color: #0A0A0A; }
+        .ob-step-box.current { border-color: #E61919; color: #E61919; }
+        .ob-step-label {
+          font-size: 10px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.35);
+        }
+        .ob-step-label.on { color: #EAEAEA; }
+        .ob-step-line { width: 26px; height: 1px; background: #2A2A2A; }
+
+        .ob-card {
+          background: #131313;
+          border: 1px solid #1A1A1A;
+          padding: 32px;
+        }
+        .ob-title {
+          font-family: 'Archivo Black', sans-serif;
+          font-size: 22px;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+          color: #EAEAEA;
+          margin: 0 0 8px;
+        }
+        .ob-sub {
+          font-size: 11px;
+          color: rgba(234,234,234,0.5);
+          margin: 0 0 26px;
+          line-height: 1.7;
+        }
+        .ob-label {
+          display: block;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.5);
+          margin-bottom: 7px;
+        }
         .ob-input {
           width: 100%;
-          background: rgba(255,255,255,0.04);
-          border: 0.5px solid rgba(255,255,255,0.1);
-          border-radius: 10px;
+          background: #111111;
+          border: 1px solid #2A2A2A;
+          border-radius: 0;
           padding: 12px 14px;
-          color: #fff;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 14px;
+          color: #EAEAEA;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
           outline: none;
           transition: border-color 0.15s;
           resize: none;
         }
-        .ob-input::placeholder { color: rgba(255,255,255,0.2); }
-        .ob-input:focus { border-color: rgba(99,255,180,0.5); }
-        .domain-pill {
-          padding: 7px 16px;
-          border-radius: 20px;
-          border: 0.5px solid rgba(255,255,255,0.1);
-          background: rgba(255,255,255,0.03);
-          color: rgba(255,255,255,0.5);
+        .ob-input::placeholder { color: rgba(234,234,234,0.25); }
+        .ob-input:focus { border-color: #E61919; background: #141414; }
+        .ob-avatar-row { display: flex; gap: 14px; margin-bottom: 18px; }
+        .ob-avatar {
+          width: 64px;
+          height: 64px;
+          flex-shrink: 0;
+          background: #111111;
+          border: 1px solid #2A2A2A;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 22px;
+          font-weight: 700;
+          color: #E61919;
+        }
+        .ob-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .locked-college {
+          width: 100%;
+          background: rgba(230,25,25,0.06);
+          border: 1px solid rgba(230,25,25,0.4);
+          border-radius: 0;
+          padding: 12px 14px;
+          color: #E61919;
           font-size: 13px;
-          font-family: 'DM Sans', sans-serif;
+          font-weight: 500;
+        }
+        .domain-pill {
+          padding: 8px 14px;
+          border-radius: 0;
+          border: 1px solid #2A2A2A;
+          background: #111111;
+          color: rgba(234,234,234,0.5);
+          font-size: 11px;
+          font-family: 'JetBrains Mono', monospace;
           cursor: pointer;
-          transition: all 0.15s;
+          transition: all 0.12s;
           white-space: nowrap;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
         }
-        .domain-pill:hover { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); }
+        .domain-pill:hover { border-color: rgba(234,234,234,0.4); color: #EAEAEA; }
         .domain-pill.selected {
-          background: rgba(99,255,180,0.1);
-          border-color: rgba(99,255,180,0.4);
-          color: #63ffb4;
+          background: rgba(230,25,25,0.12);
+          border-color: #E61919;
+          color: #E61919;
         }
+        .skills-note {
+          margin-top: 24px;
+          padding: 14px 16px;
+          background: rgba(230,25,25,0.06);
+          border: 1px solid rgba(230,25,25,0.35);
+          border-radius: 0;
+          font-size: 11px;
+          color: rgba(234,234,234,0.6);
+          line-height: 1.7;
+        }
+        .skills-note strong { color: #E61919; }
         .next-btn {
           width: 100%;
-          background: #63ffb4;
-          color: #09090b;
+          background: #E61919;
+          color: #0A0A0A;
           border: none;
-          border-radius: 10px;
-          padding: 13px;
-          font-family: 'Syne', sans-serif;
-          font-size: 14px;
+          border-radius: 0;
+          padding: 14px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
           font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
           cursor: pointer;
-          letter-spacing: 0.02em;
-          transition: opacity 0.15s;
+          transition: background 0.15s;
         }
-        .next-btn:hover { opacity: 0.88; }
+        .next-btn:hover:not(:disabled) { background: #FF2A2A; }
         .next-btn:disabled { opacity: 0.35; cursor: not-allowed; }
         .skip-btn {
           width: 100%;
           background: transparent;
-          color: rgba(255,255,255,0.3);
+          color: rgba(234,234,234,0.35);
           border: none;
           padding: 10px;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
           cursor: pointer;
           transition: color 0.15s;
           margin-top: 6px;
         }
-        .skip-btn:hover { color: rgba(255,255,255,0.6); }
-        .ob-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.45);
-          margin-bottom: 7px;
-          letter-spacing: 0.03em;
-        }
-        .locked-college {
+        .skip-btn:hover { color: rgba(234,234,234,0.7); }
+        .back-btn {
           width: 100%;
-          background: rgba(99,255,180,0.07);
-          border: 0.5px solid rgba(99,255,180,0.22);
-          border-radius: 10px;
-          padding: 12px 14px;
-          color: #63ffb4;
-          font-size: 14px;
-          font-weight: 500;
+          background: transparent;
+          border: 1px solid transparent;
+          color: rgba(234,234,234,0.35);
+          font-size: 11px;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          cursor: pointer;
+          margin-top: 10px;
+          padding: 8px;
+          font-family: 'JetBrains Mono', monospace;
+          transition: color 0.15s, border-color 0.15s;
+        }
+        .back-btn:hover { color: #EAEAEA; border-color: #2A2A2A; }
+        .prefix-wrap { position: relative; }
+        .prefix {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 12px;
+          color: rgba(234,234,234,0.35);
+        }
+        .ob-foot {
+          text-align: center;
+          font-size: 10px;
+          color: rgba(234,234,234,0.3);
+          margin-top: 20px;
+          line-height: 1.6;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+        .ob-error {
+          font-size: 11px;
+          color: #FF6B6B;
+          margin-top: 16px;
+          line-height: 1.5;
         }
       `}</style>
 
-      <div style={{ width: "100%", maxWidth: 520 }}>
-
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 40, justifyContent: "center" }}>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#63ffb4", boxShadow: "0 0 12px #63ffb4" }} />
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 18, color: "#fff", letterSpacing: "-0.3px" }}>
-            HackHive
-          </span>
+      <div className="ob-wrap">
+        <div className="ob-logo">
+          <div className="ob-logo-sq" />
+          <span className="ob-logo-text">HackHive</span>
         </div>
 
-        {/* Step indicator */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 36, alignItems: "center", justifyContent: "center" }}>
+        <div className="ob-steps">
           {STEPS.map((s, i) => (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{
-                display: "flex", alignItems: "center", gap: 6,
-                opacity: i > step ? 0.3 : 1,
-                transition: "opacity 0.3s",
-              }}>
-                <div style={{
-                  width: 24, height: 24, borderRadius: "50%",
-                  background: i < step ? "#63ffb4" : i === step ? "rgba(99,255,180,0.15)" : "rgba(255,255,255,0.06)",
-                  border: i === step ? "1.5px solid #63ffb4" : "0.5px solid rgba(255,255,255,0.1)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, fontWeight: 500,
-                  color: i < step ? "#09090b" : i === step ? "#63ffb4" : "rgba(255,255,255,0.4)",
-                  transition: "all 0.3s",
-                }}>
-                  {i < step ? "✓" : i + 1}
-                </div>
-                <span style={{ fontSize: 12, color: i === step ? "#fff" : "rgba(255,255,255,0.35)", fontWeight: i === step ? 500 : 400 }}>
-                  {s}
-                </span>
+            <div key={s} className="ob-step">
+              <div
+                className={`ob-step-box ${i < step ? "done" : i === step ? "current" : ""}`}
+              >
+                {i < step ? "OK" : i + 1}
               </div>
-              {i < STEPS.length - 1 && (
-                <div style={{ width: 28, height: 0.5, background: "rgba(255,255,255,0.1)", margin: "0 2px" }} />
-              )}
+              <span className={`ob-step-label ${i === step ? "on" : ""}`}>{s}</span>
+              {i < STEPS.length - 1 && <div className="ob-step-line" />}
             </div>
           ))}
         </div>
 
-        {/* Card */}
-        <div style={{
-          background: "#111113",
-          border: "0.5px solid rgba(255,255,255,0.08)",
-          borderRadius: 16,
-          padding: "36px 36px 32px",
-        }}>
+        <div className="ob-card">
+          <p style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(234,234,234,0.3)", margin: "0 0 14px" }}>
+            [ SETUP / STEP-{step + 1} / {STEPS.length} ]
+          </p>
 
-          {/* ── STEP 0: Profile ── */}
           {step === 0 && (
             <div>
-              <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 6 }}>
-                Set up your profile
-              </h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 28, lineHeight: 1.6 }}>
-                This is how other builders will find and know you.
-              </p>
+              <h2 className="ob-title">Set up your profile</h2>
+              <p className="ob-sub">This is how other builders will find and know you.</p>
 
-              <div style={{ display: "flex", gap: 14, marginBottom: 18 }}>
-                {/* Avatar preview */}
-                <div style={{
-                  width: 64, height: 64, borderRadius: "50%", flexShrink: 0,
-                  background: "rgba(99,255,180,0.1)",
-                  border: "0.5px solid rgba(99,255,180,0.2)",
-                  overflow: "hidden",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
+              <div className="ob-avatar-row">
+                <div className="ob-avatar">
                   {user?.photoURL
-                    ? <img src={user.photoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : <span style={{ fontSize: 22, color: "#63ffb4" }}>{form.displayName?.[0]?.toUpperCase() || "?"}</span>
+                    ? <img src={user.photoURL} alt="" />
+                    : form.displayName?.[0]?.toUpperCase() || "?"
                   }
                 </div>
-
                 <div style={{ flex: 1 }}>
                   <label className="ob-label">Display name *</label>
                   <input
@@ -245,13 +354,13 @@ export default function Onboarding() {
               </div>
 
               <div style={{ marginBottom: 18 }}>
-                <label className="ob-label">Bio * <span style={{ color: "rgba(255,255,255,0.25)", fontWeight: 400 }}>(what you build, what you're into)</span></label>
+                <label className="ob-label">Bio *</label>
                 <textarea
                   className="ob-input"
                   rows={3}
                   value={form.bio}
                   onChange={(e) => set("bio", e.target.value)}
-                  placeholder="e.g. I build full-stack web apps and love shipping products fast. Currently into AI tooling and open source..."
+                  placeholder="What you build and what you're into..."
                 />
               </div>
 
@@ -272,55 +381,34 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* ── STEP 1: Skills ── */}
           {step === 1 && (
             <div>
-              <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 6 }}>
-                What's your stack?
-              </h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 28, lineHeight: 1.6 }}>
-                Add the skills you're confident in. Others will find you through these.
-              </p>
+              <h2 className="ob-title">What's your stack?</h2>
+              <p className="ob-sub">Add the skills you're confident in. Others will find you through these.</p>
 
               <SkillInput value={form.skills} onChange={(s) => set("skills", s)} max={12} />
 
               {form.skills.length >= 1 && (
-                <div style={{
-                  marginTop: 24,
-                  padding: "14px 16px",
-                  background: "rgba(99,255,180,0.05)",
-                  border: "0.5px solid rgba(99,255,180,0.15)",
-                  borderRadius: 10,
-                }}>
-                  <p style={{ fontSize: 12, color: "rgba(99,255,180,0.7)", lineHeight: 1.6 }}>
-                    You've added {form.skills.length} skill{form.skills.length > 1 ? "s" : ""}. 
-                    Projects looking for <strong style={{ color: "#63ffb4" }}>{form.skills[0]}</strong> will show up in your discovery feed.
-                  </p>
+                <div className="skills-note">
+                  You've added <strong>{form.skills.length}</strong> skill{form.skills.length > 1 ? "s" : ""}.
+                  Projects looking for <strong>{form.skills[0]}</strong> will show up in your discovery feed.
                 </div>
               )}
             </div>
           )}
 
-          {/* ── STEP 2: Links ── */}
           {step === 2 && (
             <div>
-              <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 6 }}>
-                Your links
-              </h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 28, lineHeight: 1.6 }}>
-                Optional — but a GitHub profile goes a long way.
-              </p>
+              <h2 className="ob-title">Your links</h2>
+              <p className="ob-sub">Optional — but a GitHub profile goes a long way.</p>
 
               <div style={{ marginBottom: 18 }}>
                 <label className="ob-label">GitHub username</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{
-                    position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
-                    fontSize: 13, color: "rgba(255,255,255,0.3)",
-                  }}>github.com/</span>
+                <div className="prefix-wrap">
+                  <span className="prefix">github.com/</span>
                   <input
                     className="ob-input"
-                    style={{ paddingLeft: 102 }}
+                    style={{ paddingLeft: 104 }}
                     value={form.githubUsername}
                     onChange={(e) => set("githubUsername", e.target.value)}
                     placeholder="yourusername"
@@ -330,14 +418,11 @@ export default function Onboarding() {
 
               <div style={{ marginBottom: 18 }}>
                 <label className="ob-label">LinkedIn URL</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{
-                    position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
-                    fontSize: 13, color: "rgba(255,255,255,0.3)",
-                  }}>linkedin.com/in/</span>
+                <div className="prefix-wrap">
+                  <span className="prefix">linkedin.com/in/</span>
                   <input
                     className="ob-input"
-                    style={{ paddingLeft: 122 }}
+                    style={{ paddingLeft: 128 }}
                     value={form.linkedIn}
                     onChange={(e) => set("linkedIn", e.target.value)}
                     placeholder="yourprofile"
@@ -355,18 +440,15 @@ export default function Onboarding() {
                 />
               </div>
 
-              {error && (
-                <p style={{ fontSize: 12, color: "#ff6b6b", marginTop: 16, lineHeight: 1.5 }}>{error}</p>
-              )}
+              {error && <p className="ob-error">{error}</p>}
             </div>
           )}
 
-          {/* Navigation */}
           <div style={{ marginTop: 32 }}>
             {step < STEPS.length - 1 ? (
               <>
                 <button className="next-btn" onClick={handleNext} disabled={!canNext()}>
-                  Continue →
+                  {"Continue >>>"}
                 </button>
                 {step === 2 && (
                   <button className="skip-btn" onClick={handleFinish}>
@@ -377,7 +459,7 @@ export default function Onboarding() {
             ) : (
               <>
                 <button className="next-btn" onClick={handleFinish} disabled={saving}>
-                  {saving ? "Setting up your profile..." : "Let's go →"}
+                  {saving ? "Setting up..." : "Let's go >>>"}
                 </button>
                 <button className="skip-btn" onClick={handleFinish} disabled={saving}>
                   Skip links for now
@@ -388,20 +470,15 @@ export default function Onboarding() {
             {step > 0 && (
               <button
                 onClick={() => setStep(step - 1)}
-                style={{
-                  width: "100%", background: "transparent", border: "none",
-                  color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer",
-                  marginTop: 8, padding: "8px", fontFamily: "'DM Sans', sans-serif",
-                  transition: "color 0.15s",
-                }}
+                className="back-btn"
               >
-                ← Back
+                {"<< Back"}
               </button>
             )}
           </div>
         </div>
 
-        <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 20, lineHeight: 1.6 }}>
+        <p className="ob-foot">
           You can always edit your profile later from settings.
         </p>
       </div>

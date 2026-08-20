@@ -4,6 +4,7 @@ import { auth } from "../services/firebase";
 import { createUserDoc } from "../services/userService";
 import { trackDailyActiveUser } from "../services/analyticsService";
 import { useAuthStore } from "../store/authStore";
+import { hasAdminSession, adminUser, adminProfile } from "../services/adminService";
 
 export const useAuth = () => {
   const { setUser, setProfile, setLoading } = useAuthStore();
@@ -16,6 +17,9 @@ export const useAuth = () => {
         setUser(firebaseUser);
         setProfile(profile);
         trackDailyActiveUser(firebaseUser.uid);
+      } else if (hasAdminSession()) {
+        setUser(adminUser());
+        setProfile(adminProfile());
       } else {
         sessionStorage.removeItem("github_access_token");
         setUser(null);

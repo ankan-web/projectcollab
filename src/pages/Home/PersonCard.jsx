@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import { getOrCreateChat } from "../../services/chatService";
 
-export default function PersonCard({ user }) {
+export default function PersonCard({ user, featured = false }) {
   const navigate = useNavigate();
   const { user: currentUser, profile: currentProfile } = useAuthStore();
 
@@ -20,9 +20,7 @@ export default function PersonCard({ user }) {
       return;
     }
     try {
-      console.log("Creating chat with:", user.uid);
       await getOrCreateChat(currentUser.uid, user.uid, currentProfile);
-      console.log("Chat created, navigating...");
       navigate(`/chat?chatWith=${user.uid}`);
     } catch (err) {
       console.error("Error starting chat:", err);
@@ -31,41 +29,40 @@ export default function PersonCard({ user }) {
   };
 
   return (
-    <div className="person-card" onClick={handleCardClick}>
+    <div className="person-shell" onClick={handleCardClick}>
       <style>{`
-        .person-card {
-          background: #111113;
-          border: 0.5px solid rgba(255,255,255,0.08);
-          border-radius: 14px;
-          padding: 20px;
+        .person-shell {
+          position: relative;
+          background: #0E0E0E;
+          border: 1px solid #1A1A1A;
           cursor: pointer;
-          transition: border-color 0.15s, transform 0.15s;
+          height: 100%;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .person-shell:hover { border-color: rgba(230,25,25,0.5); background: #101010; }
+        .person-card {
+          padding: ${featured ? "28px 30px" : "22px 24px"};
           display: flex;
           flex-direction: column;
-          gap: 14px;
-        }
-        .person-card:hover {
-          border-color: rgba(255,255,255,0.18);
-          transform: translateY(-2px);
+          gap: 16px;
         }
         .person-header {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 14px;
         }
         .person-avatar {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          background: rgba(99,255,180,0.1);
-          border: 0.5px solid rgba(99,255,180,0.2);
+          width: ${featured ? "52px" : "46px"};
+          height: ${featured ? "52px" : "46px"};
+          background: #131313;
+          border: 1px solid #2A2A2A;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Syne', sans-serif;
+          font-family: 'JetBrains Mono', monospace;
           font-weight: 700;
-          font-size: 16px;
-          color: #63ffb4;
+          font-size: ${featured ? "18px" : "15px"};
+          color: #E61919;
           overflow: hidden;
           flex-shrink: 0;
         }
@@ -78,16 +75,26 @@ export default function PersonCard({ user }) {
           flex: 1;
           min-width: 0;
         }
+        .person-id {
+          font-size: 9px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.28);
+          margin: 0 0 4px;
+        }
         .person-name {
-          font-family: 'Syne', sans-serif;
-          font-size: 15px;
-          font-weight: 700;
-          color: #fff;
-          margin: 0 0 2px;
+          font-family: 'Archivo Black', sans-serif;
+          font-size: ${featured ? "16px" : "14px"};
+          font-weight: 400;
+          text-transform: uppercase;
+          color: #EAEAEA;
+          margin: 0 0 4px;
+          letter-spacing: -0.01em;
+          line-height: 1.15;
         }
         .person-college {
-          font-size: 12px;
-          color: rgba(255,255,255,0.4);
+          font-size: 11px;
+          color: rgba(234,234,234,0.45);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -98,66 +105,83 @@ export default function PersonCard({ user }) {
           gap: 6px;
         }
         .skill-chip {
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 500;
-          padding: 3px 10px;
-          border-radius: 20px;
-          background: rgba(255,255,255,0.05);
-          border: 0.5px solid rgba(255,255,255,0.1);
-          color: rgba(255,255,255,0.5);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          padding: 4px 9px;
+          border: 1px solid #2A2A2A;
+          background: transparent;
+          color: rgba(234,234,234,0.5);
+          font-family: 'JetBrains Mono', monospace;
         }
         .skill-more {
-          font-size: 11px;
-          color: rgba(255,255,255,0.3);
-          padding: 3px 6px;
+          font-size: 10px;
+          color: rgba(234,234,234,0.35);
+          padding: 4px 6px;
         }
         .connect-btn {
-          background: rgba(99,255,180,0.1);
-          border: 0.5px solid rgba(99,255,180,0.3);
-          border-radius: 8px;
-          padding: 8px 14px;
-          font-family: 'Syne', sans-serif;
-          font-size: 12px;
-          font-weight: 600;
-          color: #63ffb4;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: transparent;
+          border: 1px solid #2A2A2A;
+          padding: 10px 18px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.6);
           cursor: pointer;
-          transition: background 0.15s;
+          transition: background 0.15s, color 0.15s, border-color 0.15s;
+          align-self: flex-start;
         }
         .connect-btn:hover {
-          background: rgba(99,255,180,0.2);
+          background: rgba(230,25,25,0.08);
+          color: #E61919;
+          border-color: rgba(230,25,25,0.5);
         }
+        .connect-btn:active { transform: scale(0.98); }
       `}</style>
 
-      <div className="person-header">
-        <div className="person-avatar">
-          {user.photoURL ? (
-            <img src={user.photoURL} alt="" />
-          ) : (
-            user.displayName?.[0]?.toUpperCase() || "?"
-          )}
+      <div className="person-card">
+        <div className="person-header">
+          <div className="person-avatar">
+            {user.photoURL ? (
+              <img src={user.photoURL} alt="" />
+            ) : (
+              user.displayName?.[0]?.toUpperCase() || "?"
+            )}
+          </div>
+          <div className="person-info">
+            <p className="person-id">[ UNIT / {user.uid?.slice(0, 8)?.toUpperCase() || "----"} ]</p>
+            <h3 className="person-name">{user.displayName || "Anonymous"}</h3>
+            {user.college && (
+              <p className="person-college">{user.college}</p>
+            )}
+          </div>
         </div>
-        <div className="person-info">
-          <h3 className="person-name">{user.displayName || "Anonymous"}</h3>
-          {user.college && (
-            <p className="person-college">{user.college}</p>
-          )}
-        </div>
+
+        {user.skills?.length > 0 && (
+          <div className="person-skills">
+            {user.skills.slice(0, 4).map((skill) => (
+              <span key={skill} className="skill-chip">{skill}</span>
+            ))}
+            {user.skills.length > 4 && (
+              <span className="skill-more">+{user.skills.length - 4}</span>
+            )}
+          </div>
+        )}
+
+        <button className="connect-btn" onClick={handleConnect}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Message
+        </button>
       </div>
-
-      {user.skills?.length > 0 && (
-        <div className="person-skills">
-          {user.skills.slice(0, 4).map((skill) => (
-            <span key={skill} className="skill-chip">{skill}</span>
-          ))}
-          {user.skills.length > 4 && (
-            <span className="skill-more">+{user.skills.length - 4}</span>
-          )}
-        </div>
-      )}
-
-      <button className="connect-btn" onClick={handleConnect}>
-        Message
-      </button>
     </div>
   );
 }

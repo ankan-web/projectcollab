@@ -10,6 +10,18 @@ import {
   rejectGroupJoinRequest,
 } from "../../services/groupService";
 
+const getInitials = (name = "") => {
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return initials || "?";
+};
+
 export default function JoinRequests() {
   const { user } = useAuthStore();
   const [incomingRequests, setIncomingRequests] = useState([]);
@@ -18,6 +30,8 @@ export default function JoinRequests() {
   const [myGroupRequests, setMyGroupRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("incoming");
+  const [busyId, setBusyId] = useState("");
+  const [confirmWithdraw, setConfirmWithdraw] = useState(null);
 
   useEffect(() => {
     cleanupOldRequests(1);
@@ -52,6 +66,7 @@ export default function JoinRequests() {
   }, []);
 
   const handleAccept = async (requestId) => {
+    setBusyId(requestId);
     try {
       await updateRequestStatus(requestId, "accepted");
       setIncomingRequests((prev) =>
@@ -59,10 +74,13 @@ export default function JoinRequests() {
       );
     } catch (err) {
       console.error("Error accepting request:", err);
+    } finally {
+      setBusyId("");
     }
   };
 
   const handleReject = async (requestId) => {
+    setBusyId(requestId);
     try {
       await updateRequestStatus(requestId, "rejected");
       setIncomingRequests((prev) =>
@@ -70,10 +88,13 @@ export default function JoinRequests() {
       );
     } catch (err) {
       console.error("Error rejecting request:", err);
+    } finally {
+      setBusyId("");
     }
   };
 
   const handleGroupAccept = async (requestId) => {
+    setBusyId(requestId);
     try {
       await approveGroupJoinRequest(requestId, user.uid);
       setIncomingGroupRequests((prev) =>
@@ -81,10 +102,13 @@ export default function JoinRequests() {
       );
     } catch (err) {
       console.error("Error accepting group request:", err);
+    } finally {
+      setBusyId("");
     }
   };
 
   const handleGroupReject = async (requestId) => {
+    setBusyId(requestId);
     try {
       await rejectGroupJoinRequest(requestId);
       setIncomingGroupRequests((prev) =>
@@ -92,26 +116,28 @@ export default function JoinRequests() {
       );
     } catch (err) {
       console.error("Error rejecting group request:", err);
+    } finally {
+      setBusyId("");
     }
   };
 
-  const handleWithdraw = async (requestId) => {
-    if (!window.confirm("Withdraw this request?")) return;
+  const performWithdraw = async () => {
+    if (!confirmWithdraw) return;
+    const { type, requestId } = confirmWithdraw;
+    setConfirmWithdraw(null);
+    setBusyId(requestId);
     try {
-      await deleteJoinRequest(requestId);
-      setMyRequests((prev) => prev.filter((r) => r.id !== requestId));
+      if (type === "group") {
+        await deleteGroupJoinRequest(requestId);
+        setMyGroupRequests((prev) => prev.filter((r) => r.id !== requestId));
+      } else {
+        await deleteJoinRequest(requestId);
+        setMyRequests((prev) => prev.filter((r) => r.id !== requestId));
+      }
     } catch (err) {
       console.error("Error withdrawing request:", err);
-    }
-  };
-
-  const handleGroupWithdraw = async (requestId) => {
-    if (!window.confirm("Withdraw this group request?")) return;
-    try {
-      await deleteGroupJoinRequest(requestId);
-      setMyGroupRequests((prev) => prev.filter((r) => r.id !== requestId));
-    } catch (err) {
-      console.error("Error withdrawing group request:", err);
+    } finally {
+      setBusyId("");
     }
   };
 
@@ -119,125 +145,285 @@ export default function JoinRequests() {
     + incomingGroupRequests.filter((r) => r.status === "pending").length;
   const sentCount = myRequests.length + myGroupRequests.length;
 
+  const renderStatus = (status) => (
+    <span className={`status-badge ${status}`}>
+      <span className="status-dot" />
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+
+  const renderAvatar = (req) => (
+    <div className="request-avatar">
+      {req.requesterPhoto ? (
+        <img src={req.requesterPhoto} alt={`${req.requesterName || "User"}'s avatar`} />
+      ) : (
+        getInitials(req.requesterName)
+      )}
+    </div>
+  );
+
   return (
-    <div style={{ minHeight: "100vh", background: "#09090b", fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="requests-page">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
-        .requests-shell { max-width: 800px; margin: 0 auto; padding: 32px 24px 64px; }
-        .requests-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 24px; }
-        .tab-row { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 0.5px solid rgba(255,255,255,0.08); padding-bottom: 16px; }
-        .tab-btn {
-          padding: 10px 20px; border-radius: 10px; font-family: 'Syne', sans-serif;
-          font-size: 13px; font-weight: 700; border: none; cursor: pointer;
-          transition: all 0.15s; background: transparent; color: rgba(255,255,255,0.4);
+        .requests-page {
+          min-height: 100dvh;
+          background: #0A0A0A;
+          font-family: 'JetBrains Mono', monospace;
+          position: relative;
+          overflow-x: clip;
+          color: #EAEAEA;
         }
-        .tab-btn:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); }
-        .tab-btn.active { background: rgba(99,255,180,0.1); color: #63ffb4; }
-        .requests-list { display: flex; flex-direction: column; gap: 16px; }
-        .request-section { margin-bottom: 28px; }
+        .requests-shell {
+          position: relative;
+          z-index: 1;
+          max-width: 860px;
+          margin: 0 auto;
+          padding: clamp(40px, 7vw, 72px) 24px 96px;
+        }
+        .requests-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.5);
+          border: 1px solid #1A1A1A;
+          background: #0E0E0E;
+          padding: 8px 14px;
+          margin: 0 0 24px;
+        }
+        .requests-kicker .x { color: #E61919; }
+        .requests-title {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          font-size: clamp(30px, 5vw, 44px);
+          line-height: 0.98;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+          color: #EAEAEA;
+          margin: 0 0 12px;
+        }
+        .requests-title .red { color: #E61919; }
+        .requests-subtitle {
+          font-size: 13px;
+          color: rgba(234,234,234,0.55);
+          line-height: 1.7;
+          margin: 0 0 34px;
+          max-width: 56ch;
+        }
+        .seg-wrap { margin-bottom: 26px; }
+        .seg { max-width: 340px; }
+        .seg-count {
+          font-variant-numeric: tabular-nums;
+          font-size: 10px;
+          font-weight: 700;
+          background: #131313;
+          border: 1px solid #2A2A2A;
+          padding: 1px 7px;
+          color: rgba(234,234,234,0.6);
+        }
+        .seg-btn.active .seg-count { color: #0A0A0A; background: rgba(255,255,255,0.85); border-color: transparent; }
+        .request-section { margin-bottom: 32px; }
         .request-section-title {
-          font-family: 'Syne', sans-serif; font-size: 15px; color: #fff;
-          margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.65);
+          margin: 0 0 14px;
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+        .request-section-title::before {
+          content: "";
+          width: 6px;
+          height: 6px;
+          background: #E61919;
         }
         .request-section-count {
-          color: #63ffb4; background: rgba(99,255,180,0.1); border: 0.5px solid rgba(99,255,180,0.22);
-          border-radius: 999px; padding: 2px 8px; font-family: 'DM Sans', sans-serif; font-size: 11px;
+          color: #E61919;
+          background: rgba(230,25,25,0.08);
+          border: 1px solid rgba(230,25,25,0.4);
+          padding: 1px 7px;
+          font-size: 10px;
+          font-variant-numeric: tabular-nums;
         }
+        .requests-list { display: flex; flex-direction: column; gap: 1px; background: #1A1A1A; border: 1px solid #1A1A1A; }
         .request-card {
-          background: #111113; border: 0.5px solid rgba(255,255,255,0.08);
-          border-radius: 14px; padding: 20px;
+          background: #0E0E0E;
+          padding: 20px;
+          transition: background 0.15s;
         }
-        .request-card:hover { border-color: rgba(255,255,255,0.15); }
-        .request-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .request-user { display: flex; align-items: center; gap: 12px; }
+        .request-card:hover { background: #101010; }
+        .request-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 14px;
+        }
+        .request-user { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .request-avatar {
-          width: 40px; height: 40px; border-radius: 50%;
-          background: rgba(99,255,180,0.1); border: 1.5px solid rgba(99,255,180,0.2);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 14px; font-weight: 600; color: #63ffb4; overflow: hidden;
+          width: 40px;
+          height: 40px;
+          background: #131313;
+          border: 1px solid #2A2A2A;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
+          font-weight: 700;
+          color: #E61919;
+          overflow: hidden;
+          flex-shrink: 0;
         }
-        .request-avatar img { width: 100%; height: 100%; objectFit: cover; }
-        .request-name { font-size: 14px; font-weight: 600; color: #fff; margin: 0 0 2px; }
-        .request-college { font-size: 12px; color: rgba(255,255,255,0.4); }
-        .request-status {
-          font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;
+        .request-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .request-name { font-size: 13px; font-weight: 700; color: #EAEAEA; margin: 0 0 2px; text-transform: uppercase; }
+        .request-college { font-size: 11px; color: rgba(234,234,234,0.45); }
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          padding: 5px 10px;
+          border: 1px solid #2A2A2A;
+          flex-shrink: 0;
+          font-variant-numeric: tabular-nums;
         }
-        .request-status.pending { background: rgba(255,200,0,0.1); color: #ffc800; }
-        .request-status.accepted { background: rgba(99,255,180,0.1); color: #63ffb4; }
-        .request-status.rejected { background: rgba(255,80,80,0.1); color: #ff5555; }
-        .request-project { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
-        .request-project strong { color: #63ffb4; }
+        .status-dot { width: 5px; height: 5px; background: rgba(234,234,234,0.5); }
+        .status-badge.pending { background: rgba(255,200,0,0.06); color: #FFC800; border-color: rgba(255,200,0,0.35); }
+        .status-badge.pending .status-dot { background: #FFC800; animation: rblink 1.6s steps(2) infinite; }
+        .status-badge.accepted { background: rgba(74,246,38,0.06); color: #4AF626; border-color: rgba(74,246,38,0.35); }
+        .status-badge.accepted .status-dot { background: #4AF626; }
+        .status-badge.rejected { background: rgba(230,25,25,0.08); color: #FF6B6B; border-color: rgba(230,25,25,0.4); }
+        .status-badge.rejected .status-dot { background: #FF2A2A; }
+        @keyframes rblink { 0%, 50% { opacity: 1; } 100% { opacity: 0.25; } }
+        .request-project { font-size: 12px; color: rgba(234,234,234,0.55); margin-bottom: 12px; line-height: 1.5; }
+        .request-project strong { color: #E61919; font-weight: 700; }
         .request-message {
-          font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6;
-          background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px;
-          margin-bottom: 16px;
+          font-size: 12px;
+          color: rgba(234,234,234,0.75);
+          line-height: 1.65;
+          background: #111111;
+          border: 1px solid #2A2A2A;
+          padding: 12px 14px;
+          margin-bottom: 14px;
         }
-        .request-skills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-        .skill-chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
-        .request-actions { display: flex; gap: 12px; }
-        .request-btn {
-          padding: 8px 16px; border-radius: 8px; font-family: 'Syne', sans-serif;
-          font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none;
+        .request-message::before {
+          content: ">> ";
+          color: #E61919;
+          font-weight: 700;
         }
-        .request-btn.accept { background: #63ffb4; color: #09090b; }
-        .request-btn.accept:hover { background: #7affc4; }
-        .request-btn.reject { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); }
-        .request-btn.reject:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .request-btn.withdraw { background: rgba(255,80,80,0.1); color: #ff5555; }
-        .request-btn.withdraw:hover { background: rgba(255,80,80,0.2); }
-        .empty-state { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.4); }
+        .request-skills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .skill-chip {
+          font-size: 10px;
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          padding: 4px 9px;
+          border: 1px solid #2A2A2A;
+          background: transparent;
+          color: rgba(234,234,234,0.5);
+        }
+        .request-actions { display: flex; gap: 10px; }
+        .empty-state {
+          text-align: center;
+          padding: 64px 24px;
+          color: rgba(234,234,234,0.45);
+          border: 1px dashed #2A2A2A;
+          background: #0E0E0E;
+          font-size: 11px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .empty-state h3 {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          font-size: 20px;
+          text-transform: uppercase;
+          color: #EAEAEA;
+          margin: 0 0 10px;
+          letter-spacing: -0.02em;
+        }
+        .empty-state p { margin: 0; line-height: 1.6; }
+        .skeleton-card {
+          border: 1px solid #1A1A1A;
+          background: #0E0E0E;
+          min-height: 140px;
+        }
+        .confirm-actions { display: flex; gap: 10px; }
+        .confirm-actions .btn { flex: 1; }
         @media (max-width: 640px) {
-          .requests-shell { padding: 24px 16px 56px; }
-          .requests-title { font-size: 22px; margin-bottom: 18px; }
-          .tab-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 12px; margin-bottom: 20px; }
-          .tab-btn { padding: 10px 8px; font-size: 12px; }
+          .requests-shell { padding: 32px 16px 72px; }
+          .requests-title { font-size: 30px; }
+          .requests-subtitle { font-size: 12px; }
+          .seg { max-width: none; }
           .request-card { padding: 16px; }
-          .request-header { align-items: flex-start; gap: 12px; }
+          .request-header { align-items: flex-start; }
           .request-user { min-width: 0; flex: 1; }
-          .request-status { flex-shrink: 0; }
           .request-actions { flex-direction: column; gap: 8px; }
-          .request-btn { width: 100%; padding: 10px 14px; }
-          .request-message { font-size: 13px; }
-        }
-        @media (max-width: 420px) {
-          .request-header { flex-direction: column; }
-          .request-status { align-self: flex-start; }
+          .btn { width: 100%; padding: 11px 16px; }
+          .confirm-actions { flex-direction: column-reverse; }
         }
       `}</style>
 
       <Navbar />
 
       <main className="requests-shell">
-        <h1 className="requests-title">Join Requests</h1>
+        <p className="requests-kicker">
+          <span className="x">[</span> Inbox <span className="x">]</span>
+        </p>
+        <h1 className="requests-title">
+          Join <span className="red">requests</span>
+        </h1>
+        <p className="requests-subtitle">
+          {">"} Review who wants to join your projects and groups, and track the requests you have sent.
+        </p>
 
-        <div className="tab-row">
-          <button
-            className={`tab-btn ${activeTab === "incoming" ? "active" : ""}`}
-            onClick={() => setActiveTab("incoming")}
-          >
-            Received ({pendingIncomingCount})
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "sent" ? "active" : ""}`}
-            onClick={() => setActiveTab("sent")}
-          >
-            Sent ({sentCount})
-          </button>
+        <div className="seg-wrap">
+          <div className="seg">
+            <button
+              className={`seg-btn ${activeTab === "incoming" ? "active" : ""}`}
+              onClick={() => setActiveTab("incoming")}
+            >
+              Received
+              <span className="seg-count">{pendingIncomingCount}</span>
+            </button>
+            <button
+              className={`seg-btn ${activeTab === "sent" ? "active" : ""}`}
+              onClick={() => setActiveTab("sent")}
+            >
+              Sent
+              <span className="seg-count">{sentCount}</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
-          <div className="empty-state">Loading...</div>
+          <div className="requests-list" aria-hidden="true">
+            <div className="skeleton-card" />
+            <div className="skeleton-card" />
+            <div className="skeleton-card" />
+          </div>
         ) : activeTab === "incoming" ? (
           incomingRequests.length === 0 && incomingGroupRequests.length === 0 ? (
             <div className="empty-state">
-              <p>No join requests yet. Project and group requests will show here.</p>
+              <h3>Nothing received</h3>
+              <p>Join requests for your projects and groups will show up here.</p>
             </div>
           ) : (
             <div>
               {incomingRequests.length > 0 && (
                 <section className="request-section">
                   <h2 className="request-section-title">
-                    Project Join Requests
+                    Project requests
                     <span className="request-section-count">{incomingRequests.filter((r) => r.status === "pending").length}</span>
                   </h2>
                   <div className="requests-list">
@@ -245,13 +431,7 @@ export default function JoinRequests() {
                       <div key={req.id} className="request-card">
                         <div className="request-header">
                           <div className="request-user">
-                            <div className="request-avatar">
-                              {req.requesterPhoto ? (
-                                <img src={req.requesterPhoto} alt="" />
-                              ) : (
-                                req.requesterName?.[0]?.toUpperCase()
-                              )}
-                            </div>
+                            {renderAvatar(req)}
                             <div>
                               <p className="request-name">{req.requesterName || "User"}</p>
                               {req.requesterCollege && (
@@ -259,9 +439,7 @@ export default function JoinRequests() {
                               )}
                             </div>
                           </div>
-                          <span className={`request-status ${req.status}`}>
-                            {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                          </span>
+                          {renderStatus(req.status)}
                         </div>
                         
                         {req.project && (
@@ -271,7 +449,7 @@ export default function JoinRequests() {
                         )}
                         
                         {req.message && (
-                          <p className="request-message">"{req.message}"</p>
+                          <p className="request-message">{req.message}</p>
                         )}
                         
                         {req.requesterSkills?.length > 0 && (
@@ -284,17 +462,11 @@ export default function JoinRequests() {
                         
                         {req.status === "pending" && (
                           <div className="request-actions">
-                            <button
-                              className="request-btn accept"
-                              onClick={() => handleAccept(req.id)}
-                            >
-                              Accept
+                            <button className="btn btn-red" onClick={() => handleAccept(req.id)} disabled={busyId === req.id}>
+                              {busyId === req.id ? "Working..." : "Accept"}
                             </button>
-                            <button
-                              className="request-btn reject"
-                              onClick={() => handleReject(req.id)}
-                            >
-                              Decline
+                            <button className="btn btn-ghost" onClick={() => handleReject(req.id)} disabled={busyId === req.id}>
+                              {busyId === req.id ? "Working..." : "Decline"}
                             </button>
                           </div>
                         )}
@@ -307,7 +479,7 @@ export default function JoinRequests() {
               {incomingGroupRequests.length > 0 && (
                 <section className="request-section">
                   <h2 className="request-section-title">
-                    Group Join Requests
+                    Group requests
                     <span className="request-section-count">{incomingGroupRequests.filter((r) => r.status === "pending").length}</span>
                   </h2>
                   <div className="requests-list">
@@ -315,13 +487,7 @@ export default function JoinRequests() {
                       <div key={req.id} className="request-card">
                         <div className="request-header">
                           <div className="request-user">
-                            <div className="request-avatar">
-                              {req.requesterPhoto ? (
-                                <img src={req.requesterPhoto} alt="" />
-                              ) : (
-                                req.requesterName?.[0]?.toUpperCase()
-                              )}
-                            </div>
+                            {renderAvatar(req)}
                             <div>
                               <p className="request-name">{req.requesterName || "User"}</p>
                               {req.requesterCollege && (
@@ -329,9 +495,7 @@ export default function JoinRequests() {
                               )}
                             </div>
                           </div>
-                          <span className={`request-status ${req.status}`}>
-                            {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                          </span>
+                          {renderStatus(req.status)}
                         </div>
 
                         <p className="request-project">
@@ -348,11 +512,11 @@ export default function JoinRequests() {
 
                         {req.status === "pending" && (
                           <div className="request-actions">
-                            <button className="request-btn accept" onClick={() => handleGroupAccept(req.id)}>
-                              Accept
+                            <button className="btn btn-red" onClick={() => handleGroupAccept(req.id)} disabled={busyId === req.id}>
+                              {busyId === req.id ? "Working..." : "Accept"}
                             </button>
-                            <button className="request-btn reject" onClick={() => handleGroupReject(req.id)}>
-                              Decline
+                            <button className="btn btn-ghost" onClick={() => handleGroupReject(req.id)} disabled={busyId === req.id}>
+                              {busyId === req.id ? "Working..." : "Decline"}
                             </button>
                           </div>
                         )}
@@ -366,32 +530,25 @@ export default function JoinRequests() {
         ) : (
           myRequests.length === 0 && myGroupRequests.length === 0 ? (
             <div className="empty-state">
-              <p>You haven't sent any join requests yet.</p>
+              <h3>Nothing sent</h3>
+              <p>Requests you send to projects and groups will appear here.</p>
             </div>
           ) : (
             <div>
               {myRequests.length > 0 && (
                 <section className="request-section">
-                  <h2 className="request-section-title">Project Join Requests</h2>
+                  <h2 className="request-section-title">Project requests</h2>
                   <div className="requests-list">
                     {myRequests.map((req) => (
                       <div key={req.id} className="request-card">
                         <div className="request-header">
                           <div className="request-user">
-                            <div className="request-avatar">
-                              {req.requesterPhoto ? (
-                                <img src={req.requesterPhoto} alt="" />
-                              ) : (
-                                req.requesterName?.[0]?.toUpperCase()
-                              )}
-                            </div>
+                            {renderAvatar(req)}
                             <div>
                               <p className="request-name">{req.requesterName || "You"}</p>
                             </div>
                           </div>
-                          <span className={`request-status ${req.status}`}>
-                            {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                          </span>
+                          {renderStatus(req.status)}
                         </div>
                         
                         <p className="request-project">
@@ -399,15 +556,12 @@ export default function JoinRequests() {
                         </p>
                         
                         {req.message && (
-                          <p className="request-message">"{req.message}"</p>
+                          <p className="request-message">{req.message}</p>
                         )}
                         
                         {req.status === "pending" && (
                           <div className="request-actions">
-                            <button
-                              className="request-btn withdraw"
-                              onClick={() => handleWithdraw(req.id)}
-                            >
+                            <button className="btn btn-danger" onClick={() => setConfirmWithdraw({ type: "project", requestId: req.id })}>
                               Withdraw
                             </button>
                           </div>
@@ -420,26 +574,18 @@ export default function JoinRequests() {
 
               {myGroupRequests.length > 0 && (
                 <section className="request-section">
-                  <h2 className="request-section-title">Group Join Requests</h2>
+                  <h2 className="request-section-title">Group requests</h2>
                   <div className="requests-list">
                     {myGroupRequests.map((req) => (
                       <div key={req.id} className="request-card">
                         <div className="request-header">
                           <div className="request-user">
-                            <div className="request-avatar">
-                              {req.requesterPhoto ? (
-                                <img src={req.requesterPhoto} alt="" />
-                              ) : (
-                                req.requesterName?.[0]?.toUpperCase()
-                              )}
-                            </div>
+                            {renderAvatar(req)}
                             <div>
                               <p className="request-name">{req.requesterName || "You"}</p>
                             </div>
                           </div>
-                          <span className={`request-status ${req.status}`}>
-                            {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                          </span>
+                          {renderStatus(req.status)}
                         </div>
 
                         <p className="request-project">
@@ -448,7 +594,7 @@ export default function JoinRequests() {
 
                         {req.status === "pending" && (
                           <div className="request-actions">
-                            <button className="request-btn withdraw" onClick={() => handleGroupWithdraw(req.id)}>
+                            <button className="btn btn-danger" onClick={() => setConfirmWithdraw({ type: "group", requestId: req.id })}>
                               Withdraw
                             </button>
                           </div>
@@ -462,6 +608,30 @@ export default function JoinRequests() {
           )
         )}
       </main>
+
+      {confirmWithdraw && (
+        <div className="modal-overlay" onClick={() => setConfirmWithdraw(null)}>
+          <div className="confirm-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
+                <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>
+              </svg>
+            </div>
+            <h2 className="modal-title">Withdraw request?</h2>
+            <p className="confirm-message">This request will be removed. You can send a new one later if you change your mind.</p>
+            <div className="confirm-actions">
+              <button className="btn btn-ghost" onClick={() => setConfirmWithdraw(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={performWithdraw} disabled={busyId === confirmWithdraw.requestId}>
+                {busyId === confirmWithdraw.requestId ? "Withdrawing..." : "Withdraw"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

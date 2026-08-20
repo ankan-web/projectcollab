@@ -48,6 +48,57 @@ export default function DiscoverFeed() {
 
   return (
     <div className="discover-feed">
+      <style>{`
+        .discover-feed { padding: 0 0 24px; }
+        .bento-grid {
+          display: grid;
+          grid-auto-flow: dense;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1px;
+          background: #1A1A1A;
+          border: 1px solid #1A1A1A;
+        }
+        .bento-grid .bento-item:first-child {
+          grid-column: 1 / -1;
+        }
+        .bento-item {
+          min-width: 0;
+          background: #0A0A0A;
+        }
+        .feed-state {
+          text-align: center;
+          padding: 72px 24px;
+          color: rgba(234,234,234,0.45);
+          border: 1px solid #1A1A1A;
+          background: #0E0E0E;
+          font-size: 13px;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .skeleton-card {
+          border: 1px solid #1A1A1A;
+          background: #0E0E0E;
+          min-height: 180px;
+        }
+        .skeleton-card.wide { min-height: 260px; }
+        .skeleton-card::after {
+          content: "LOADING...";
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          font-size: 10px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.2);
+          animation: hblink 1.4s steps(2) infinite;
+        }
+        @keyframes hblink { 0%, 50% { opacity: 1; } 100% { opacity: 0.25; } }
+        @media (max-width: 768px) {
+          .bento-grid { grid-template-columns: 1fr; }
+          .bento-grid .bento-item:first-child { grid-column: auto; }
+        }
+      `}</style>
+
       <FilterBar
         domain={domain}
         setDomain={setDomain}
@@ -58,45 +109,32 @@ export default function DiscoverFeed() {
       />
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.4)" }}>
-          Loading projects...
+        <div className="bento-grid" aria-hidden="true">
+          <div className="skeleton-card wide" />
+          <div className="skeleton-card" />
+          <div className="skeleton-card" />
         </div>
       ) : filteredProjects.length === 0 ? (
-        <div style={{ 
-          textAlign: "center", 
-          padding: 48, 
-          color: "rgba(255,255,255,0.4)",
-          background: "rgba(255,255,255,0.02)",
-          borderRadius: 16,
-          border: "0.5px solid rgba(255,255,255,0.06)",
-        }}>
-          {projects.length === 0 
-            ? "No projects yet. Be the first to create one!" 
-            : "No projects match your filters."}
+        <div className="feed-state">
+          {projects.length === 0
+            ? "NO PROJECTS YET. BE THE FIRST TO CREATE ONE."
+            : "NO PROJECTS MATCH YOUR FILTERS."}
         </div>
       ) : (
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-          gap: 16,
-        }}>
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              showOwner
-              currentUserId={user?.uid}
-              onDelete={handleProjectDelete}
-            />
+        <div className="bento-grid">
+          {filteredProjects.map((project, i) => (
+            <div key={project.id} className="bento-item">
+              <ProjectCard
+                project={project}
+                showOwner
+                featured={i === 0}
+                currentUserId={user?.uid}
+                onDelete={handleProjectDelete}
+              />
+            </div>
           ))}
         </div>
       )}
-
-      <style>{`
-        .discover-feed {
-          padding: 24px 0;
-        }
-      `}</style>
     </div>
   );
 }

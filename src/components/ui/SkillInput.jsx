@@ -49,20 +49,22 @@ export default function SkillInput({ value = [], onChange, max = 10 }) {
         .skill-tag {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          background: rgba(99,255,180,0.1);
-          border: 0.5px solid rgba(99,255,180,0.3);
-          color: #63ffb4;
-          font-size: 12px;
+          gap: 7px;
+          background: rgba(230,25,25,0.1);
+          border: 1px solid rgba(230,25,25,0.4);
+          color: #EAEAEA;
+          font-size: 11px;
           font-weight: 500;
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-family: 'DM Sans', sans-serif;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          padding: 5px 10px;
+          border-radius: 0;
+          font-family: 'JetBrains Mono', monospace;
         }
         .skill-remove {
           background: none;
           border: none;
-          color: rgba(99,255,180,0.6);
+          color: rgba(230,25,25,0.7);
           cursor: pointer;
           font-size: 14px;
           line-height: 1;
@@ -70,37 +72,37 @@ export default function SkillInput({ value = [], onChange, max = 10 }) {
           display: flex;
           align-items: center;
         }
-        .skill-remove:hover { color: #63ffb4; }
+        .skill-remove:hover { color: #E61919; }
         .skill-input-field {
           background: transparent;
           border: none;
           outline: none;
-          color: #fff;
+          color: #EAEAEA;
           font-size: 13px;
-          font-family: 'DM Sans', sans-serif;
-          min-width: 120px;
+          font-family: 'JetBrains Mono', monospace;
+          min-width: 140px;
           flex: 1;
         }
-        .skill-input-field::placeholder { color: rgba(255,255,255,0.25); }
+        .skill-input-field::placeholder { color: rgba(234,234,234,0.25); }
         .suggestions-dropdown {
           position: absolute;
           top: calc(100% + 6px);
           left: 0; right: 0;
-          background: #1a1a1e;
-          border: 0.5px solid rgba(255,255,255,0.12);
-          border-radius: 10px;
+          background: #131313;
+          border: 1px solid #2A2A2A;
           overflow: hidden;
           z-index: 50;
         }
         .suggestion-item {
-          padding: 9px 14px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.7);
+          padding: 10px 14px;
+          font-size: 12px;
+          color: rgba(234,234,234,0.7);
           cursor: pointer;
-          font-family: 'DM Sans', sans-serif;
-          transition: background 0.1s;
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.03em;
+          transition: background 0.1s, color 0.1s;
         }
-        .suggestion-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .suggestion-item:hover { background: #1A1A1A; color: #E61919; }
       `}</style>
 
       {/* Tag container + input */}
@@ -110,10 +112,10 @@ export default function SkillInput({ value = [], onChange, max = 10 }) {
           flexWrap: "wrap",
           gap: 6,
           alignItems: "center",
-          background: "rgba(255,255,255,0.04)",
-          border: `0.5px solid ${focused ? "rgba(99,255,180,0.5)" : "rgba(255,255,255,0.1)"}`,
-          borderRadius: 10,
-          padding: "10px 14px",
+          background: "#111111",
+          border: `1px solid ${focused ? "#E61919" : "#2A2A2A"}`,
+          borderRadius: 0,
+          padding: "11px 14px",
           minHeight: 48,
           transition: "border-color 0.15s",
           cursor: "text",
@@ -141,8 +143,8 @@ export default function SkillInput({ value = [], onChange, max = 10 }) {
         )}
       </div>
 
-      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 6 }}>
-        {value.length}/{max} skills · Press Enter or comma to add
+      <p style={{ fontSize: 10, color: "rgba(234,234,234,0.35)", marginTop: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+        {value.length}/{max} skills / enter or comma to add
       </p>
 
       {/* Suggestions dropdown */}

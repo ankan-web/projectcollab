@@ -13,8 +13,9 @@ import NeedBoard from "./pages/Needs/NeedBoard";
 import Groups from "./pages/Groups/Groups";
 import JoinRequests from "./pages/Requests/JoinRequests";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AboutDev from "./pages/AboutDev/AboutDev";
+import NotFound from "./pages/NotFound/NotFound";
 import NotificationListener from "./components/layout/NotificationListener";
-import GlobalResponsiveStyles from "./styles/GlobalResponsiveStyles";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuthStore();
@@ -42,20 +43,13 @@ function HomeOrLogin() {
 function AppLoader() {
   return (
     <div style={{
-      minHeight: "100vh", background: "#09090b",
+      minHeight: "100dvh", background: "#0A0A0A",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: "'DM Sans', sans-serif",
+      fontFamily: "'JetBrains Mono', monospace",
     }}>
-      <div style={{ textAlign: "center" }}>
-        <div style={{
-          width: 10, height: 10, borderRadius: "50%",
-          background: "#63ffb4", boxShadow: "0 0 16px #63ffb4",
-          margin: "0 auto 16px",
-          animation: "pulse 1.2s ease-in-out infinite",
-        }} />
-        <style>{`@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}`}</style>
-        <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Loading...</p>
-      </div>
+      <p style={{ color: "rgba(234,234,234,0.6)", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+        INITIALIZING<span className="blink" style={{ color: "#E61919" }}>_</span>
+      </p>
     </div>
   );
 }
@@ -65,7 +59,6 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <GlobalResponsiveStyles />
       <Toaster position="top-center" toastOptions={{ style: { background: "#18181b", color: "#fff", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10 } }} />
       <NotificationListener />
       <Routes>
@@ -98,8 +91,11 @@ export default function App() {
           <OnboardedRoute><JoinRequests /></OnboardedRoute>
         } />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/about-dev" element={
+          <OnboardedRoute><AboutDev /></OnboardedRoute>
+        } />
         <Route path="/" element={<HomeOrLogin />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

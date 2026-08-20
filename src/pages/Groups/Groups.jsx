@@ -38,6 +38,7 @@ export default function Groups() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [busyGroupId, setBusyGroupId] = useState("");
   const [myGroupRequests, setMyGroupRequests] = useState([]);
@@ -106,15 +107,24 @@ export default function Groups() {
     });
   };
 
+  const validateForm = () => {
+    const next = {};
+    if (!form.name.trim()) next.name = "Give the group a name.";
+    if (!form.description.trim()) next.description = "Describe what the group is building or preparing for.";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.description.trim()) return;
+    if (!validateForm()) return;
 
     setSubmitting(true);
     try {
       const groupId = await createGroup(user.uid, profile, form);
       updateLocalMembership(groupId, form.name.trim());
       setForm(emptyForm);
+      setErrors({});
       setShowForm(false);
       toast.success("Group created.");
     } catch (error) {
@@ -186,9 +196,9 @@ export default function Groups() {
     setConfirmAction({
       type: "leave",
       group,
-      title: "Leave Group?",
+      title: "Leave group?",
       message: `You will leave "${group.name}". You will need to request approval again if you want to rejoin later.`,
-      confirmLabel: "Leave Group",
+      confirmLabel: "Leave group",
     });
   };
 
@@ -196,9 +206,9 @@ export default function Groups() {
     setConfirmAction({
       type: "disband",
       group,
-      title: "Disband Group?",
+      title: "Disband group?",
       message: `This will permanently delete "${group.name}" and remove every member from the group.`,
-      confirmLabel: "Disband Group",
+      confirmLabel: "Disband group",
     });
   };
 
@@ -222,13 +232,14 @@ export default function Groups() {
     const slots = Array.from({ length: maxMembers }, (_, index) => renderMemberSlot(group, index));
 
     return (
-      <article key={group.id} className={`group-card ${isMine ? "mine" : ""} ${pinned ? "pinned" : ""}`}>
+      <div key={group.id} className={`group-card ${isMine ? "mine" : ""} ${pinned ? "pinned" : ""}`}>
         <div className="group-top">
           <div>
             <h2 className="group-name">{group.name}</h2>
             <p className="group-desc">{group.description}</p>
           </div>
-          <span className={`capacity-pill ${isFull ? "full" : ""}`}>
+          <span className={`capacity-badge ${isFull ? "full" : ""}`}>
+            <span className="capacity-dot" />
             {memberCount}/{maxMembers}
           </span>
         </div>
@@ -252,17 +263,17 @@ export default function Groups() {
         <div className="group-actions">
           {isMine ? (
             isAdmin ? (
-              <button className="ghost-btn danger-btn" onClick={() => requestDisband(group)} disabled={busyGroupId === group.id}>
+              <button className="btn btn-danger" onClick={() => requestDisband(group)} disabled={busyGroupId === group.id}>
                 {busyGroupId === group.id ? "Working..." : "Disband"}
               </button>
             ) : (
-              <button className="ghost-btn" onClick={() => requestLeave(group)} disabled={busyGroupId === group.id}>
+              <button className="btn btn-ghost" onClick={() => requestLeave(group)} disabled={busyGroupId === group.id}>
                 {busyGroupId === group.id ? "Leaving..." : "Leave"}
               </button>
             )
           ) : (
             <button
-              className="primary-btn"
+              className="btn btn-red"
               onClick={() => handleJoin(group)}
               disabled={!!activeGroupId || isFull || pendingRequest || busyGroupId === group.id}
             >
@@ -274,11 +285,11 @@ export default function Groups() {
                     ? "Already in group"
                     : pendingRequest
                       ? "Request sent"
-                      : "Request to Join"}
+                      : "Request to join"}
             </button>
           )}
         </div>
-      </article>
+      </div>
     );
   };
 
@@ -300,7 +311,7 @@ export default function Groups() {
     return (
       <div key={member.uid} className="group-slot">
         <div className="slot-avatar">
-          {member.photoURL ? <img src={member.photoURL} alt="" /> : getInitials(member.displayName)}
+          {member.photoURL ? <img src={member.photoURL} alt={`${member.displayName}'s avatar`} /> : getInitials(member.displayName)}
         </div>
         <div className="slot-copy">
           <div className="slot-name-row">
@@ -314,189 +325,377 @@ export default function Groups() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#09090b", fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="groups-page">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
-        .groups-shell { max-width: 1120px; margin: 0 auto; padding: 32px 24px 72px; }
-        .groups-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
-        .groups-kicker { margin: 0 0 8px; color: #63ffb4; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
-        .groups-title { font-family: 'Syne', sans-serif; color: #fff; font-size: 28px; line-height: 1.1; margin: 0 0 8px; }
-        .groups-subtitle { color: rgba(255,255,255,0.5); font-size: 14px; line-height: 1.6; margin: 0; max-width: 620px; }
-        .primary-btn {
-          background: #63ffb4; color: #09090b; border: none; border-radius: 10px;
-          padding: 11px 18px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px;
-          cursor: pointer; transition: transform 0.15s, opacity 0.15s; white-space: nowrap;
+        .groups-page {
+          min-height: 100dvh;
+          background: #0A0A0A;
+          font-family: 'JetBrains Mono', monospace;
+          position: relative;
+          overflow-x: clip;
+          color: #EAEAEA;
         }
-        .primary-btn:hover { transform: translateY(-1px); }
-        .primary-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-        .ghost-btn {
-          background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); border: 0.5px solid rgba(255,255,255,0.12);
-          border-radius: 10px; padding: 10px 14px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px;
-          cursor: pointer; transition: all 0.15s;
+        .groups-shell {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          max-width: 1120px;
+          margin: 0 auto;
+          padding: clamp(40px, 7vw, 72px) 24px 96px;
         }
-        .ghost-btn:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-        .danger-btn { color: #ff7777; border-color: rgba(255,110,110,0.22); background: rgba(255,80,80,0.08); }
-        .danger-btn:hover { color: #fff; background: rgba(255,80,80,0.16); }
-        .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
-        .stat-box { background: #111113; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; }
-        .stat-value { font-family: 'Syne', sans-serif; color: #fff; font-size: 22px; margin: 0 0 4px; }
-        .stat-label { color: rgba(255,255,255,0.4); font-size: 12px; margin: 0; }
+        .groups-head { margin-bottom: 40px; }
+        .groups-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.5);
+          border: 1px solid #1A1A1A;
+          background: #0E0E0E;
+          padding: 8px 14px;
+          margin: 0 0 24px;
+        }
+        .groups-kicker .x { color: #E61919; }
+        .groups-title {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          font-size: clamp(30px, 5.5vw, 48px);
+          line-height: 0.98;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+          color: #EAEAEA;
+          margin: 0 0 14px;
+        }
+        .groups-title .red { color: #E61919; }
+        .groups-subtitle {
+          font-size: 13px;
+          color: rgba(234,234,234,0.55);
+          line-height: 1.7;
+          max-width: 56ch;
+          margin: 0;
+        }
+        .groups-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
+          flex-wrap: wrap;
+          margin-bottom: 40px;
+        }
+        .stats-row {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 1px;
+          background: #1A1A1A;
+          border: 1px solid #1A1A1A;
+          flex: 1;
+          margin-bottom: 0;
+        }
+        .stat-box {
+          background: #0E0E0E;
+          padding: 20px 22px;
+        }
+        .stat-value {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          color: #EAEAEA;
+          font-size: 28px;
+          line-height: 1;
+          margin: 0 0 8px;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: -0.02em;
+        }
+        .stat-value .red { color: #E61919; }
+        .stat-label {
+          color: rgba(234,234,234,0.4);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          margin: 0;
+        }
         .current-group {
-          display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          background: rgba(99,255,180,0.08); border: 0.5px solid rgba(99,255,180,0.25);
-          border-radius: 14px; padding: 16px 18px; margin-bottom: 22px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          background: #0E0E0E;
+          border: 1px solid rgba(230,25,25,0.4);
+          padding: 20px 24px;
+          margin-bottom: 16px;
         }
-        .current-title { color: #fff; font-size: 14px; font-weight: 700; margin: 0 0 3px; }
-        .current-text { color: rgba(255,255,255,0.5); font-size: 13px; margin: 0; }
-        .groups-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .current-title { color: #EAEAEA; font-size: 15px; font-weight: 700; margin: 0 0 4px; font-family: 'Archivo Black', sans-serif; text-transform: uppercase; }
+        .current-text { color: rgba(234,234,234,0.45); font-size: 12px; margin: 0; }
+        .current-live {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 10px;
+          font-weight: 700;
+          color: #E61919;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin: 0 0 8px;
+        }
+        .current-live .dot {
+          width: 6px; height: 6px;
+          background: #E61919;
+          animation: gblink 1.6s steps(2) infinite;
+        }
+        @keyframes gblink { 0%, 50% { opacity: 1; } 100% { opacity: 0.2; } }
+        .groups-grid {
+          display: grid;
+          grid-auto-flow: dense;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1px;
+          background: #1A1A1A;
+          border: 1px solid #1A1A1A;
+        }
         .group-card {
-          background: #111113; border: 0.5px solid rgba(255,255,255,0.08);
-          border-radius: 14px; padding: 18px; min-width: 0; transition: border-color 0.15s;
+          background: #0E0E0E;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          height: 100%;
+          transition: background 0.15s;
         }
-        .group-card:hover { border-color: rgba(255,255,255,0.16); }
-        .group-card.mine { border-color: rgba(99,255,180,0.42); box-shadow: 0 0 0 1px rgba(99,255,180,0.08); }
-        .group-card.pinned { margin-bottom: 24px; }
-        .browse-title { font-family: 'Syne', sans-serif; color: #fff; font-size: 16px; margin: 0 0 14px; }
-        .group-top { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
-        .group-name { font-family: 'Syne', sans-serif; color: #fff; font-size: 18px; margin: 0 0 6px; overflow-wrap: anywhere; }
-        .group-desc { color: rgba(255,255,255,0.55); font-size: 13px; line-height: 1.55; margin: 0; overflow-wrap: anywhere; }
-        .capacity-pill {
-          flex-shrink: 0; height: fit-content; border-radius: 999px; padding: 6px 10px;
-          background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.1);
-          color: rgba(255,255,255,0.65); font-size: 12px; font-weight: 700;
+        .group-card:hover { background: #101010; }
+        .group-card.mine { border: 1px solid rgba(230,25,25,0.4); }
+        .group-card.pinned { margin-bottom: 8px; }
+        .group-top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+        .group-name {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          text-transform: uppercase;
+          color: #EAEAEA;
+          font-size: 16px;
+          margin: 0 0 6px;
+          overflow-wrap: anywhere;
+          letter-spacing: -0.01em;
         }
-        .capacity-pill.full { color: #ff9a9a; background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.18); }
-        .group-focus { color: rgba(255,255,255,0.38); font-size: 12px; margin: 0 0 12px; }
-        .group-focus strong { color: #63ffb4; }
-        .skill-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; margin-bottom: 14px; }
-        .skill-chip { color: rgba(255,255,255,0.56); font-size: 11px; border-radius: 999px; padding: 4px 9px; background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.1); }
-        .slots-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
-        .group-slot { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 9px; border-radius: 10px; background: rgba(255,255,255,0.035); border: 0.5px solid rgba(255,255,255,0.08); }
-        .group-slot.empty { border-style: dashed; background: rgba(255,255,255,0.018); }
+        .group-desc { color: rgba(234,234,234,0.5); font-size: 12px; line-height: 1.6; margin: 0; overflow-wrap: anywhere; max-width: 52ch; }
+        .capacity-badge {
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 5px 10px;
+          background: transparent;
+          border: 1px solid #2A2A2A;
+          color: rgba(234,234,234,0.65);
+          font-size: 11px;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+        }
+        .capacity-dot { width: 5px; height: 5px; background: #E61919; }
+        .capacity-badge.full { color: #FF6B6B; background: rgba(230,25,25,0.08); border-color: rgba(230,25,25,0.4); }
+        .capacity-badge.full .capacity-dot { background: #FF2A2A; }
+        .group-focus { color: rgba(234,234,234,0.55); font-size: 12px; margin: 0; }
+        .group-focus strong { color: #E61919; font-weight: 700; }
+        .skill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .skill-chip {
+          color: rgba(234,234,234,0.5);
+          font-size: 10px;
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          padding: 4px 9px;
+          background: transparent;
+          border: 1px solid #2A2A2A;
+        }
+        .slots-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #1A1A1A; }
+        .group-slot {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+          padding: 10px;
+          background: #0E0E0E;
+          border: none;
+        }
+        .group-slot.empty { border: 1px dashed #2A2A2A; background: transparent; }
         .slot-avatar {
-          width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-          background: rgba(99,255,180,0.1); border: 0.5px solid rgba(99,255,180,0.22); color: #63ffb4;
-          font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; overflow: hidden;
+          width: 34px;
+          height: 34px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #131313;
+          border: 1px solid #2A2A2A;
+          color: #E61919;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11px;
+          font-weight: 700;
+          overflow: hidden;
         }
         .slot-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .empty-avatar { color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); font-size: 18px; }
+        .empty-avatar { color: rgba(234,234,234,0.3); background: transparent; font-size: 16px; font-weight: 400; }
         .slot-copy { min-width: 0; }
         .slot-name-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-        .slot-name { color: rgba(255,255,255,0.82); font-size: 12px; font-weight: 700; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .slot-meta { color: rgba(255,255,255,0.32); font-size: 11px; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .admin-tag { color: #09090b; background: #63ffb4; border-radius: 999px; padding: 2px 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
-        .group-actions { display: flex; justify-content: flex-end; gap: 8px; }
-        .empty-state { text-align: center; color: rgba(255,255,255,0.42); padding: 56px 20px; background: #111113; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 14px; }
-        .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.72); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal-panel { width: 100%; max-width: 520px; background: #18181b; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px; }
-        .modal-title { font-family: 'Syne', sans-serif; font-size: 20px; color: #fff; margin: 0 0 20px; }
-        .confirm-panel { width: 100%; max-width: 390px; background: #18181b; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.45); }
-        .confirm-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.25); color: #ff6666; }
-        .confirm-title { font-family: 'Syne', sans-serif; font-size: 19px; color: #fff; margin: 0 0 9px; }
-        .confirm-message { font-size: 14px; line-height: 1.55; color: rgba(255,255,255,0.56); margin: 0 0 22px; }
-        .confirm-actions { display: flex; gap: 12px; }
-        .confirm-actions button { flex: 1; }
-        .form-field { margin-bottom: 15px; }
-        .form-label { display: block; color: rgba(255,255,255,0.48); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 7px; }
-        .form-input, .form-textarea {
-          width: 100%; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.12);
-          border-radius: 10px; padding: 12px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px;
-          outline: none; transition: border-color 0.15s;
+        .slot-name { color: rgba(234,234,234,0.85); font-size: 12px; font-weight: 700; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+        .slot-meta { color: rgba(234,234,234,0.35); font-size: 10px; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-tag {
+          color: #0A0A0A;
+          background: #E61919;
+          padding: 2px 7px;
+          font-size: 8px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          flex-shrink: 0;
         }
-        .form-input:focus, .form-textarea:focus { border-color: rgba(99,255,180,0.45); }
-        .form-textarea { min-height: 96px; resize: vertical; }
-        .form-actions { display: flex; gap: 12px; margin-top: 20px; }
-        .form-actions button { flex: 1; }
+        .group-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+        .browse-title {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          text-transform: uppercase;
+          color: #EAEAEA;
+          font-size: 14px;
+          margin: 0 0 16px;
+        }
+        .feed-state {
+          text-align: center;
+          padding: 64px 24px;
+          color: rgba(234,234,234,0.45);
+          border: 1px dashed #2A2A2A;
+          background: #0E0E0E;
+          font-size: 11px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .feed-state h3 {
+          font-family: 'Archivo Black', sans-serif;
+          font-weight: 400;
+          font-size: 20px;
+          text-transform: uppercase;
+          color: #EAEAEA;
+          margin: 0 0 10px;
+          letter-spacing: -0.02em;
+        }
+        .feed-state p { margin: 0; line-height: 1.6; }
+        .skeleton-card {
+          border: 1px solid #1A1A1A;
+          background: #0E0E0E;
+          min-height: 240px;
+        }
+        .confirm-actions { display: flex; gap: 10px; }
+        .confirm-actions .btn { flex: 1; }
+        .form-field { margin-bottom: 16px; }
         @media (max-width: 860px) {
           .groups-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
-          .groups-shell { padding: 24px 16px 56px; }
+          .groups-shell { padding: 32px 16px 72px; }
           .groups-header, .current-group { flex-direction: column; align-items: stretch; }
-          .groups-title { font-size: 24px; }
-          .groups-subtitle { font-size: 13px; }
-          .primary-btn, .ghost-btn { width: 100%; }
+          .groups-title { font-size: 30px; }
+          .groups-subtitle { font-size: 12px; }
+          .btn { width: 100%; }
           .stats-row { grid-template-columns: 1fr; }
-          .group-card { padding: 15px; }
+          .group-card { padding: 20px; }
           .group-top { align-items: flex-start; }
           .slots-grid { grid-template-columns: 1fr; }
           .group-actions { flex-direction: column; }
-          .group-actions button { width: 100%; }
-          .modal-overlay { padding: 14px; align-items: flex-end; }
-          .modal-panel, .confirm-panel { max-width: none; padding: 22px; border-radius: 16px 16px 0 0; }
-          .form-actions, .confirm-actions { flex-direction: column-reverse; }
+          .confirm-actions { flex-direction: column-reverse; }
         }
       `}</style>
 
       <Navbar />
 
       <main className="groups-shell">
+        <div className="groups-head">
+          <p className="groups-kicker">
+            <span className="x">[</span> Team finder <span className="x">]</span>
+          </p>
+          <h1 className="groups-title">
+            Find your <span className="red">six.</span>
+          </h1>
+          <p className="groups-subtitle">
+            {">"} Join an existing six-person group or create one and let others fill the open slots.
+          </p>
+        </div>
+
         <div className="groups-header">
-          <div>
-            <p className="groups-kicker">Team finder</p>
-            <h1 className="groups-title">Groups</h1>
-            <p className="groups-subtitle">
-              Join an existing six-person group or create a new one and let others fill the open slots.
-            </p>
+          <div className="stats-row">
+            <div className="stat-box">
+              <p className="stat-value">{groups.length}</p>
+              <p className="stat-label">Active groups</p>
+            </div>
+            <div className="stat-box">
+              <p className="stat-value">{openGroupsCount}</p>
+              <p className="stat-label">Groups with space</p>
+            </div>
+            <div className="stat-box">
+              <p className="stat-value"><span className="red">{totalOpenSlots}</span></p>
+              <p className="stat-label">Open member slots</p>
+            </div>
           </div>
-          <button className="primary-btn" onClick={() => setShowForm(true)} disabled={!!activeGroupId}>
-            Create Group
+          <button className="btn btn-red" onClick={() => setShowForm(true)} disabled={!!activeGroupId}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Create group
           </button>
         </div>
 
-        <div className="stats-row">
-          <div className="stat-box">
-            <p className="stat-value">{groups.length}</p>
-            <p className="stat-label">Active groups</p>
-          </div>
-          <div className="stat-box">
-            <p className="stat-value">{openGroupsCount}</p>
-            <p className="stat-label">Groups with space</p>
-          </div>
-          <div className="stat-box">
-            <p className="stat-value">{totalOpenSlots}</p>
-            <p className="stat-label">Open member slots</p>
-          </div>
-        </div>
-
         {activeGroup && (
-          <section>
+          <section style={{ marginBottom: 40 }}>
             <div className="current-group">
-            <div>
-              <p className="current-title">You are in {activeGroup.name}</p>
-              <p className="current-text">
-                {activeGroup.adminId === user?.uid
-                  ? "You are the admin. Only you can disband this group."
-                  : "You can leave this group, but only the admin can disband it."}
-              </p>
-            </div>
-            {activeGroup.adminId === user?.uid ? (
-              <button className="ghost-btn danger-btn" onClick={() => requestDisband(activeGroup)} disabled={busyGroupId === activeGroup.id}>
-                {busyGroupId === activeGroup.id ? "Working..." : "Disband Group"}
-              </button>
-            ) : (
-              <button className="ghost-btn" onClick={() => requestLeave(activeGroup)} disabled={busyGroupId === activeGroup.id}>
-                {busyGroupId === activeGroup.id ? "Leaving..." : "Leave Group"}
-              </button>
-            )}
+              <div>
+                <p className="current-live"><span className="dot" /> Your crew</p>
+                <p className="current-title">You are in {activeGroup.name}</p>
+                <p className="current-text">
+                  {activeGroup.adminId === user?.uid
+                    ? "You are the admin. Only you can disband this group."
+                    : "You can leave this group, but only the admin can disband it."}
+                </p>
+              </div>
+              {activeGroup.adminId === user?.uid ? (
+                <button className="btn btn-danger" onClick={() => requestDisband(activeGroup)} disabled={busyGroupId === activeGroup.id}>
+                  {busyGroupId === activeGroup.id ? "Working..." : "Disband group"}
+                </button>
+              ) : (
+                <button className="btn btn-ghost" onClick={() => requestLeave(activeGroup)} disabled={busyGroupId === activeGroup.id}>
+                  {busyGroupId === activeGroup.id ? "Leaving..." : "Leave group"}
+                </button>
+              )}
             </div>
             {renderGroupCard(activeGroup, true)}
           </section>
         )}
 
         {loading ? (
-          <div className="empty-state">Loading groups...</div>
+          <div className="groups-grid" aria-hidden="true">
+            <div className="skeleton-card" />
+            <div className="skeleton-card" />
+          </div>
         ) : groups.length === 0 ? (
-          <div className="empty-state">No groups yet. Create the first group and start filling the six slots.</div>
+          <div className="feed-state">
+            <h3>No groups yet</h3>
+            <p>Create the first group and start filling the six slots.</p>
+          </div>
         ) : browseGroups.length === 0 ? (
-          <div className="empty-state">
-            {activeGroup ? "No other groups to browse right now." : "No groups available right now."}
+          <div className="feed-state">
+            <h3>{activeGroup ? "Nothing else to browse" : "No groups right now"}</h3>
+            <p>
+              {activeGroup
+                ? "No other groups are open for requests at the moment."
+                : "No groups are available right now."}
+            </p>
           </div>
         ) : (
           <>
-            {activeGroup && <h2 className="browse-title">Other Groups</h2>}
+            {activeGroup && <h2 className="browse-title">Other groups</h2>}
             <div className="groups-grid">
-              {browseGroups.map((group) => renderGroupCard(group))}
+              {browseGroups.map((group) => (
+                <div key={group.id} className="bento-item">
+                  {renderGroupCard(group)}
+                </div>
+              ))}
             </div>
           </>
         )}
@@ -505,32 +704,44 @@ export default function Groups() {
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Create a Group</h2>
-            <form onSubmit={handleCreate}>
+            <p style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(234,234,234,0.3)", margin: "0 0 12px" }}>
+              [ TRANSMIT / CREATE GROUP ]
+            </p>
+            <h2 className="modal-title">Create a group</h2>
+            <p className="modal-sub">Pick a name, set the direction, and let people fill the rest.</p>
+            <form onSubmit={handleCreate} noValidate>
               <div className="form-field">
-                <label className="form-label">Group name</label>
+                <label className="field-label" htmlFor="group-name">Group name</label>
                 <input
-                  className="form-input"
+                  id="group-name"
+                  className={`field ${errors.name ? "error" : ""}`}
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, name: e.target.value }); if (errors.name) setErrors({ ...errors, name: "" }); }}
                   placeholder="e.g., AI Builders Squad"
                   maxLength={60}
+                  aria-invalid={!!errors.name}
                 />
+                {errors.name && <p className="field-error">{errors.name}</p>}
               </div>
               <div className="form-field">
-                <label className="form-label">Description</label>
+                <label className="field-label" htmlFor="group-desc">Description</label>
                 <textarea
-                  className="form-textarea"
+                  id="group-desc"
+                  className={`field ${errors.description ? "error" : ""}`}
+                  style={{ minHeight: 96 }}
                   value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, description: e.target.value }); if (errors.description) setErrors({ ...errors, description: "" }); }}
                   placeholder="What is this group building or preparing for?"
                   maxLength={240}
+                  aria-invalid={!!errors.description}
                 />
+                {errors.description && <p className="field-error">{errors.description}</p>}
               </div>
               <div className="form-field">
-                <label className="form-label">Focus</label>
+                <label className="field-label" htmlFor="group-focus">Focus <span style={{ color: "rgba(234,234,234,0.4)", fontWeight: 400 }}>(optional)</span></label>
                 <input
-                  className="form-input"
+                  id="group-focus"
+                  className="field"
                   value={form.focus}
                   onChange={(e) => setForm({ ...form, focus: e.target.value })}
                   placeholder="Hackathon, startup idea, open source, research..."
@@ -538,19 +749,19 @@ export default function Groups() {
                 />
               </div>
               <div className="form-field">
-                <label className="form-label">Skills wanted</label>
+                <label className="field-label">Skills wanted <span style={{ color: "rgba(234,234,234,0.4)", fontWeight: 400 }}>(optional)</span></label>
                 <SkillInput
                   value={form.skillsNeeded}
                   onChange={(skillsNeeded) => setForm({ ...form, skillsNeeded })}
                   max={8}
                 />
               </div>
-              <div className="form-actions">
-                <button type="button" className="ghost-btn" onClick={() => setShowForm(false)}>
+              <div className="modal-actions">
+                <button type="button" className="btn btn-ghost" onClick={() => { setShowForm(false); setErrors({}); }}>
                   Cancel
                 </button>
-                <button type="submit" className="primary-btn" disabled={submitting || !form.name.trim() || !form.description.trim()}>
-                  {submitting ? "Creating..." : "Create"}
+                <button type="submit" className="btn btn-red" disabled={submitting}>
+                  {submitting ? "Creating..." : "Create group"}
                 </button>
               </div>
             </form>
@@ -562,19 +773,19 @@ export default function Groups() {
         <div className="modal-overlay" onClick={() => setConfirmAction(null)}>
           <div className="confirm-panel" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 9v4"/>
                 <path d="M12 17h.01"/>
                 <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>
               </svg>
             </div>
-            <h2 className="confirm-title">{confirmAction.title}</h2>
+            <h2 className="modal-title">{confirmAction.title}</h2>
             <p className="confirm-message">{confirmAction.message}</p>
             <div className="confirm-actions">
-              <button className="ghost-btn" onClick={() => setConfirmAction(null)}>
+              <button className="btn btn-ghost" onClick={() => setConfirmAction(null)}>
                 Cancel
               </button>
-              <button className="ghost-btn danger-btn" onClick={confirmCurrentAction}>
+              <button className="btn btn-danger" onClick={confirmCurrentAction}>
                 {confirmAction.confirmLabel}
               </button>
             </div>

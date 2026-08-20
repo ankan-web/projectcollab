@@ -19,3 +19,4 @@ export const googleProvider = new GoogleAuthProvider();
 
 githubProvider.addScope("read:user");
 githubProvider.addScope("user:email");
+githubProvider.addScope("public_repo");

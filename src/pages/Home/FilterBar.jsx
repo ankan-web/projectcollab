@@ -11,10 +11,10 @@ const DOMAINS = [
   "Open Source",
 ];
 
-export default function FilterBar({ 
-  domain, setDomain, 
-  search, setSearch, 
-  collabOnly, setCollabOnly 
+export default function FilterBar({
+  domain, setDomain,
+  search, setSearch,
+  collabOnly, setCollabOnly
 }) {
   return (
     <div className="filterbar">
@@ -22,96 +22,114 @@ export default function FilterBar({
         .filterbar {
           display: flex;
           flex-direction: column;
-          gap: 14px;
-          margin-bottom: 24px;
+          gap: 18px;
+          margin-bottom: 36px;
+          font-family: 'JetBrains Mono', monospace;
         }
         .domain-pills {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 6px;
         }
         .domain-pill {
-          padding: 6px 14px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 500;
-          border: 0.5px solid rgba(255,255,255,0.1);
-          background: rgba(255,255,255,0.03);
-          color: rgba(255,255,255,0.45);
+          padding: 8px 14px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          border: 1px solid #2A2A2A;
+          background: transparent;
+          color: rgba(234,234,234,0.45);
           cursor: pointer;
-          transition: all 0.15s;
+          transition: border-color 0.15s, background 0.15s, color 0.15s;
+          font-family: 'JetBrains Mono', monospace;
         }
         .domain-pill:hover {
-          background: rgba(255,255,255,0.06);
-          color: rgba(255,255,255,0.6);
+          color: rgba(234,234,234,0.85);
+          border-color: rgba(234,234,234,0.4);
         }
         .domain-pill.selected {
-          background: rgba(99,255,180,0.1);
-          border-color: rgba(99,255,180,0.35);
-          color: #63ffb4;
+          background: #E61919;
+          border-color: #E61919;
+          color: #fff;
         }
         .filter-row {
           display: flex;
           gap: 12px;
           align-items: center;
         }
-        .search-input {
+        .search-wrap {
+          position: relative;
           flex: 1;
-          background: rgba(255,255,255,0.04);
-          border: 0.5px solid rgba(255,255,255,0.12);
-          border-radius: 10px;
-          padding: 10px 14px;
-          color: #fff;
+          min-width: 0;
+        }
+        .search-prompt {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #E61919;
           font-size: 13px;
+          font-weight: 700;
+          pointer-events: none;
+        }
+        .search-input {
+          width: 100%;
+          background: #0E0E0E;
+          border: 1px solid #1A1A1A;
+          padding: 12px 16px 12px 34px;
+          color: #EAEAEA;
+          font-size: 12px;
+          font-family: 'JetBrains Mono', monospace;
           outline: none;
           transition: border-color 0.15s;
         }
-        .search-input:focus {
-          border-color: rgba(99,255,180,0.45);
-        }
-        .search-input::placeholder {
-          color: rgba(255,255,255,0.22);
-        }
+        .search-input:focus { border-color: rgba(230,25,25,0.55); }
+        .search-input::placeholder { color: rgba(234,234,234,0.25); }
         .collab-toggle {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           cursor: pointer;
-          padding: 8px 14px;
-          border-radius: 10px;
-          border: 0.5px solid rgba(255,255,255,0.1);
-          background: rgba(255,255,255,0.03);
-          transition: all 0.15s;
+          padding: 10px 16px;
+          border: 1px solid #2A2A2A;
+          background: #0E0E0E;
+          transition: border-color 0.15s, background 0.15s;
+          user-select: none;
+          flex-shrink: 0;
         }
-        .collab-toggle:hover {
-          background: rgba(255,255,255,0.06);
-        }
+        .collab-toggle:hover { border-color: rgba(234,234,234,0.4); }
         .collab-toggle.active {
-          background: rgba(99,255,180,0.1);
-          border-color: rgba(99,255,180,0.35);
+          background: rgba(230,25,25,0.08);
+          border-color: rgba(230,25,25,0.5);
         }
-        .collab-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.3);
-          transition: background 0.15s;
+        .collab-box {
+          width: 12px;
+          height: 12px;
+          border: 1px solid #2A2A2A;
+          background: transparent;
+          flex-shrink: 0;
+          transition: background 0.15s, border-color 0.15s;
         }
-        .collab-toggle.active .collab-dot {
-          background: #63ffb4;
-          animation: blink 2s ease-in-out infinite;
-        }
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
+        .collab-toggle.active .collab-box {
+          background: #E61919;
+          border-color: #E61919;
         }
         .collab-label {
-          font-size: 12px;
-          color: rgba(255,255,255,0.45);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(234,234,234,0.5);
           white-space: nowrap;
+          transition: color 0.15s;
         }
-        .collab-toggle.active .collab-label {
-          color: #63ffb4;
+        .collab-toggle.active .collab-label { color: #E61919; }
+        @media (max-width: 640px) {
+          .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+          }
         }
       `}</style>
 
@@ -129,19 +147,22 @@ export default function FilterBar({
       </div>
 
       <div className="filter-row">
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search by title or tech stack..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="search-wrap">
+          <span className="search-prompt">&gt;</span>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="search by title or tech stack..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         <button
           type="button"
           className={`collab-toggle ${collabOnly ? "active" : ""}`}
           onClick={() => setCollabOnly(!collabOnly)}
         >
-          <span className="collab-dot" />
+          <span className="collab-box" />
           <span className="collab-label">Open to collab</span>
         </button>
       </div>

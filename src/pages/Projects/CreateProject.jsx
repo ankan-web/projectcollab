@@ -61,115 +61,62 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#09090b", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0A0A0A", fontFamily: "'JetBrains Mono', monospace", color: "#EAEAEA" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
         * { box-sizing: border-box; }
         .project-shell { max-width: 760px; margin: 0 auto; padding: 46px 24px 80px; }
         .project-panel {
-          background: #111113;
-          border: 0.5px solid rgba(255,255,255,0.08);
-          border-radius: 16px;
+          background: #0E0E0E;
+          border: 1px solid #1A1A1A;
           padding: 30px 32px;
         }
         .project-heading {
-          font-family: 'Syne', sans-serif;
-          font-size: 26px;
-          font-weight: 800;
-          color: #fff;
-          letter-spacing: -0.5px;
+          font-family: 'Archivo Black', sans-serif;
+          font-size: 24px;
+          font-weight: 400;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+          color: #EAEAEA;
           margin: 0 0 8px;
         }
-        .project-copy { color: rgba(255,255,255,0.4); font-size: 14px; line-height: 1.7; margin: 0 0 28px; }
-        .project-label {
-          display: block;
-          margin-bottom: 7px;
-          color: rgba(255,255,255,0.35);
-          font-size: 11px;
-          font-weight: 500;
+        .project-copy { color: rgba(234,234,234,0.45); font-size: 13px; line-height: 1.7; margin: 0 0 28px; }
+        .domain-options { display: flex; flex-wrap: wrap; gap: 6px; }
+        .domain-option {
+          padding: 8px 13px;
+          border: 1px solid #2A2A2A;
+          background: transparent;
+          color: rgba(234,234,234,0.45);
+          font-size: 10px;
+          font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-        }
-        .project-field {
-          width: 100%;
-          background: rgba(255,255,255,0.04);
-          border: 0.5px solid rgba(255,255,255,0.12);
-          border-radius: 10px;
-          padding: 12px 14px;
-          color: #fff;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 14px;
-          outline: none;
-          resize: vertical;
-          transition: border-color 0.15s;
-        }
-        .project-field:focus { border-color: rgba(99,255,180,0.45); }
-        .project-field::placeholder { color: rgba(255,255,255,0.22); }
-        .domain-options { display: flex; flex-wrap: wrap; gap: 8px; }
-        .domain-option {
-          padding: 7px 13px;
-          border-radius: 20px;
-          border: 0.5px solid rgba(255,255,255,0.1);
-          background: rgba(255,255,255,0.03);
-          color: rgba(255,255,255,0.46);
-          font-size: 12px;
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'JetBrains Mono', monospace;
           cursor: pointer;
+          transition: border-color 0.15s, background 0.15s, color 0.15s;
         }
-        .domain-option.selected {
-          background: rgba(99,255,180,0.1);
-          border-color: rgba(99,255,180,0.35);
-          color: #63ffb4;
-        }
+        .domain-option:hover { color: rgba(234,234,234,0.85); border-color: rgba(234,234,234,0.4); }
+        .domain-option.selected { background: #E61919; border-color: #E61919; color: #fff; }
         .collab-toggle {
           width: 46px;
           height: 26px;
-          border-radius: 999px;
-          border: 0.5px solid rgba(255,255,255,0.14);
-          background: rgba(255,255,255,0.08);
+          border: 1px solid #2A2A2A;
+          background: #131313;
           padding: 3px;
           cursor: pointer;
           transition: background 0.15s, border-color 0.15s;
         }
-        .collab-toggle.on { background: rgba(99,255,180,0.18); border-color: rgba(99,255,180,0.38); }
+        .collab-toggle.on { background: rgba(230,25,25,0.25); border-color: #E61919; }
         .toggle-knob {
           width: 18px;
           height: 18px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.7);
+          background: rgba(234,234,234,0.5);
           transition: transform 0.15s, background 0.15s;
         }
-        .collab-toggle.on .toggle-knob { transform: translateX(20px); background: #63ffb4; }
-        .primary-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 42px;
-          padding: 0 22px;
-          border-radius: 10px;
-          background: #63ffb4;
-          color: #09090b;
-          border: none;
-          font-family: 'Syne', sans-serif;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-        .ghost-link {
-          color: rgba(255,255,255,0.5);
-          font-size: 13px;
-          text-decoration: none;
-        }
-        .link-inputs-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
+        .collab-toggle.on .toggle-knob { transform: translateX(20px); background: #E61919; }
+        .link-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-block { margin-bottom: 20px; }
         @media (max-width: 600px) {
-          .link-inputs-grid {
-            grid-template-columns: 1fr;
-          }
+          .link-inputs-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -177,63 +124,69 @@ export default function App() {
 
       <main className="project-shell">
         <form className="project-panel" onSubmit={handleSubmit}>
+          <p style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(234,234,234,0.3)", margin: "0 0 12px" }}>
+            [ TRANSMIT / NEW PROJECT ]
+          </p>
           <h1 className="project-heading">Create project</h1>
           <p className="project-copy">Share what you are building and make it easy for other builders to understand where they can help.</p>
 
           <div style={{ display: "grid", gap: 20 }}>
-            <label>
-              <span className="project-label">Title</span>
+            <div className="form-block">
+              <label className="field-label" htmlFor="cp-title">Title</label>
               <input
-                className="project-field"
+                id="cp-title"
+                className="field"
                 value={form.title}
                 onChange={(e) => set("title", e.target.value)}
                 placeholder="AI study planner"
               />
-            </label>
+            </div>
 
-            <label>
-              <span className="project-label">Description</span>
+            <div className="form-block">
+              <label className="field-label" htmlFor="cp-desc">Description</label>
               <textarea
-                className="project-field"
+                id="cp-desc"
+                className="field"
                 rows={5}
                 value={form.description}
                 onChange={(e) => set("description", e.target.value)}
                 placeholder="What does it do, who is it for, and what kind of collaborator would help?"
               />
-            </label>
+            </div>
 
-            {/* Added Links Grid */}
             <div className="link-inputs-grid">
-              <label>
-                <span className="project-label">GitHub Repository (Optional)</span>
+              <div className="form-block">
+                <label className="field-label" htmlFor="cp-github">GitHub Repository (Optional)</label>
                 <input
-                  className="project-field"
+                  id="cp-github"
+                  className="field"
                   type="url"
                   value={form.githubLink}
                   onChange={(e) => set("githubLink", e.target.value)}
                   placeholder="https://github.com/username/repo"
                 />
-              </label>
+              </div>
 
-              <label>
-                <span className="project-label">Live Project Link (Optional)</span>
+              <div className="form-block">
+                <label className="field-label" htmlFor="cp-live">Live Project Link (Optional)</label>
                 <input
-                  className="project-field"
+                  id="cp-live"
+                  className="field"
                   type="url"
                   value={form.liveLink}
                   onChange={(e) => set("liveLink", e.target.value)}
                   placeholder="https://your-project.com"
                 />
-              </label>
+              </div>
             </div>
 
-            <div>
-              <span className="project-label">Tech stack</span>
+            <div className="form-block">
+              <span className="field-label">Tech stack</span>
               <SkillInput value={form.techStack} onChange={(skills) => set("techStack", skills)} max={12} />
             </div>
 
-            <div>
-              <span className="project-label">Domain</span>
+            <div className="form-block">
+              <span className="field-label">Domain</span>
               <div className="domain-options">
                 {DOMAINS.map((domain) => (
                   <button
@@ -248,10 +201,10 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 0" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 0", borderTop: "1px solid #1A1A1A", borderBottom: "1px solid #1A1A1A" }}>
               <div>
-                <p style={{ margin: "0 0 4px", color: "#fff", fontSize: 14, fontWeight: 500 }}>Open to collab</p>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.34)", fontSize: 13 }}>Show a collaboration button on the project page.</p>
+                <p style={{ margin: "0 0 4px", color: "#EAEAEA", fontSize: 13, fontWeight: 700, textTransform: "uppercase" }}>Open to collab</p>
+                <p style={{ margin: 0, color: "rgba(234,234,234,0.4)", fontSize: 12 }}>Show a collaboration button on the project page.</p>
               </div>
               <button
                 type="button"
@@ -265,11 +218,11 @@ export default function App() {
             </div>
           </div>
 
-          {error && <p style={{ color: "#ff6b6b", fontSize: 12, margin: "2px 0 0" }}>{error}</p>}
+          {error && <p style={{ color: "#FF6B6B", fontSize: 12, margin: "16px 0 0" }}>{error}</p>}
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, marginTop: 28 }}>
-            <button type="button" className="ghost-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }} onClick={() => navigate("/profile/me")}>Cancel</button>
-            <button className="primary-btn" type="submit" disabled={saving}>
+            <button type="button" className="btn btn-ghost" onClick={() => navigate("/profile/me")}>Cancel</button>
+            <button className="btn btn-red" type="submit" disabled={saving}>
               {saving ? "Creating..." : "Create project"}
             </button>
           </div>

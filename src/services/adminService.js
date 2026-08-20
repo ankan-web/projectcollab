@@ -9,7 +9,41 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-const ADMIN_EMAIL = "route1buddy@gmail.com";
+export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "route1buddy@gmail.com";
+export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "";
+
+const SESSION_KEY = "hackhive_admin_session";
+
+export const isLocalDev = () => {
+  const h = window.location.hostname;
+  return h === "localhost" || h === "127.0.0.1";
+};
+
+export const isAdminCredentials = (email, password) =>
+  isLocalDev() && email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD;
+
+export const startAdminSession = () => sessionStorage.setItem(SESSION_KEY, "1");
+export const endAdminSession = () => sessionStorage.removeItem(SESSION_KEY);
+export const hasAdminSession = () => isLocalDev() && sessionStorage.getItem(SESSION_KEY) === "1";
+
+export const adminUser = () => ({
+  uid: "admin",
+  email: ADMIN_EMAIL,
+  displayName: "HackHive Admin",
+  isAdmin: true,
+});
+
+export const adminProfile = () => ({
+  ...adminUser(),
+  photoURL: "",
+  college: "HackHive",
+  bio: "Platform administrator",
+  skills: [],
+  githubUsername: "",
+  linkedIn: "",
+  portfolio: "",
+  onboarded: true,
+});
 
 export const checkIsAdmin = async (email) => {
   return email === ADMIN_EMAIL;
