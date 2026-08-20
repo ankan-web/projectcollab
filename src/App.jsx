@@ -20,6 +20,7 @@ import Terms from "./pages/Legal/Terms";
 import Privacy from "./pages/Legal/Privacy";
 import AboutUs from "./pages/Legal/AboutUs";
 import NotificationListener from "./components/layout/NotificationListener";
+import StarBanner from "./components/layout/StarBanner";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuthStore();
@@ -65,6 +66,7 @@ export default function App() {
     <BrowserRouter>
       <Toaster position="top-center" toastOptions={{ style: { background: "#18181b", color: "#fff", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 10 } }} />
       <NotificationListener />
+      <StarBanner />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />
